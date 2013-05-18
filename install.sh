@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# run with `curl robertkrahn.org/emacs-install.sh | sh`
+# run with `curl http://robertkrahn.org/install-emacs.sh | sh`
 # installing my emacs.d
 
 EMACSD=$HOME/.emacs.d
