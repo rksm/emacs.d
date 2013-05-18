@@ -573,11 +573,7 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   ;;; moving text, really important
-  (global-set-key [C-s-268632080] (lambda (arg) ; C-s-p
-                                    (interactive "p")
-                                    (move-text-up arg)
-                                    (previous-line arg)))
-
+  (global-set-key [C-s-268632080] 'move-text-up) ; C-s-p
   (global-set-key [C-s-268632078] 'move-text-down) ; C-s-n
 
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
