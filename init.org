@@ -17,20 +17,21 @@ ELPA/marmalade repos.
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
   (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/"))
   (package-initialize)
-
-  (defvar my-packages '(iy-go-to-char
-                        ace-jump-mode
-                        multiple-cursors
-                        expand-region
-                        autopair
-                        wgrep
-                        paredit
-                        magit
-                        ;; clojure-mode
-                        ;; clojure-test-mode
-                        ;; nrepl
-                        ))
-
+  (package-refresh-contents)
+  
+  (defvar my-packages
+    '(iy-go-to-char
+      ace-jump-mode
+      multiple-cursors
+      expand-region
+      wgrep
+      paredit
+      magit
+      ;; clojure-mode
+      ;; clojure-test-mode
+      ;; nrepl
+      ))
+  
   (dolist (p my-packages)
     (when (not (package-installed-p p))
       (package-install p)))
@@ -83,46 +84,18 @@ ELPA/marmalade repos.
                                                   (".*" "~/.emacs.d/backups" t))
                  ;; lock files
                  create-lockfiles nil)
-
+  
    (transient-mark-mode t)
    (delete-selection-mode t)
    ;; (cua-selection-mode t)
-
+  
   (show-paren-mode 1)
-
+  (electric-pair-mode 1)
+  
    ;; remember cursor pos
    (setq save-place t)
    (require 'saveplace)
    (setq save-place-file "~/.emacs.d/saved-places")
-#+END_SRC
-
-#+RESULTS:
-: ~/.emacs.d/saved-places
-
-** autopair
-#+BEGIN_SRC emacs-lisp
-  (require 'autopair)
-  
-  (defun inhibit-autopair ()
-    "Prevent autopair from enabling in the current buffer."
-    (setq autopair-dont-activate t)
-    (autopair-mode -1))
-  
-  (setq autopair-autowrap t)
-  (autopair-global-mode t)
-  
-  (add-hook 'emacs-lisp-mode-hook 'inhibit-autopair)
-  (add-hook 'term-mode-hook 'inhibit-autopair)
-  (autopair-global-mode t)
-  
-  ;; autopair delete-selection-mode compat:
-  (put 'autopair-insert-opening 'delete-selection t)
-  (put 'autopair-skip-close-maybe 'delete-selection t)
-  (put 'autopair-insert-or-skip-quote 'delete-selection t)
-  (put 'autopair-extra-insert-opening 'delete-selection t)
-  (put 'autopair-extra-skip-close-maybe 'delete-selection t)
-  (put 'autopair-backspace 'delete-selection 'supersede)
-  (put 'autopair-newline 'delete-selection t)
 #+END_SRC
 
 * org-mode
@@ -379,11 +352,7 @@ Suppress GUI features
 
 ;; Compatibility with other modes
 
-(defadvice enable-paredit-mode (before disable-autopair activate)
-  (inhibit-autopair))
-
 (add-hook 'minibuffer-setup-hook 'conditionally-enable-paredit-mode)
-
 
 (defvar paredit-minibuffer-commands '(eval-expression
                                       pp-eval-expression
