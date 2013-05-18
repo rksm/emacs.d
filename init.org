@@ -476,7 +476,17 @@ Suppress GUI features
 #+END_SRC
 
 * key setup
-
+** window related
+#+BEGIN_SRC emacs-lisp
+  (when *is-a-mac*
+   (dolist (map `(,global-map ,minibuffer-local-map))
+     (progn
+       (print (prin1-to-string map))
+       (define-key map (kbd "<s-home>") 'windmove-left)
+       (define-key map (kbd "<s-end>") 'windmove-right)
+       (define-key map (kbd "<s-prior>") 'windmove-up)
+       (define-key map (kbd "<s-next>") 'windmove-down))))
+#+END_SRC
 #+BEGIN_SRC emacs-lisp
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; keys
@@ -641,7 +651,6 @@ Suppress GUI features
   ;;; ace
   (require 'ace-jump-mode)
   (global-set-key (kbd "s-j") 'ace-jump-mode)
-  (global-set-key (kbd "C-c j") 'ace-jump-mode)
   (global-set-key (kbd "s-J") 'ace-jump-mode-pop-mark)
   (set-default 'ace-jump-mode-submode-list '(ace-jump-char-mode
                                              ace-jump-word-mode
