@@ -406,13 +406,14 @@ Suppress GUI features
         magit-completing-read-function 'magit-ido-completing-read
         magit-log-auto-more t
         magit-log-cutoff-length 300)
-
+  
   (defun magit-status-somedir ()
     (interactive)
     (let ((current-prefix-arg t))
       (magit-status default-directory)))
-
-  (global-set-key (kbd "C-c g s") 'magit-status-somedir)
+  
+  (define-key vc-prefix-map (kbd "SPC") 'magit-status-somedir)
+#+END_SRC
 * helm
 #+BEGIN_SRC emacs-lisp
   (require 'helm-config)
