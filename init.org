@@ -1,0 +1,781 @@
+* requirements / packages
+
+** load path, etc.
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path (expand-file-name "~/.emacs.d"))
+#+END_SRC
+
+** elpa
+*package.el* proved to be sufficient for getting recent packages/projects from
+ELPA/marmalade repos.
+
+#+BEGIN_SRC emacs-lisp
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; packages
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  (require 'package)
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/"))
+  (package-initialize)
+
+  (defvar my-packages '(iy-go-to-char
+                        ace-jump-mode
+                        multiple-cursors
+                        expand-region
+                        autopair
+                        wgrep
+                        paredit
+                        magit
+                        ;; clojure-mode
+                        ;; clojure-test-mode
+                        ;; nrepl
+                        ))
+
+  (dolist (p my-packages)
+    (when (not (package-installed-p p))
+      (package-install p)))
+#+END_SRC
+* generic settings
+** system-related
+#+BEGIN_SRC emacs-lisp
+(setq *spell-check-support-enabled* t)
+(setq *is-a-mac* (eq system-type 'darwin))
+(setq *is-carbon-emacs* (and *is-a-mac* (eq window-system 'mac)))
+(setq *is-cocoa-emacs* (and *is-a-mac* (eq window-system 'ns)))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+** emacs interaction
+#+BEGIN_SRC emacs-lisp
+   (fset 'yes-or-no-p 'y-or-n-p)
+   (column-number-mode 1)
+   (setq-default blink-cursor-delay 0
+                 blink-cursor-interval 0.8
+                 mouse-highlight nil
+                 bookmark-default-file "~/.emacs.d/.bookmarks.el"
+                 buffers-menu-max-size 30
+                 case-fold-search t
+                 compilation-scroll-output t
+                 ediff-split-window-function 'split-window-horizontally
+                 ediff-window-setup-function 'ediff-setup-windows-plain
+                 grep-highlight-matches t
+                 grep-scroll-output nil
+                 indent-tabs-mode nil
+                 tab-width 4
+                 line-spacing 0.2
+                 set-mark-command-repeat-pop t
+                 show-trailing-whitespace t
+                 tooltip-delay 1.5
+                 truncate-lines nil
+                 truncate-partial-width-windows nil
+                 visible-bell t
+                 fill-column 80
+                 ;; backups
+                 make-backup-files t
+                 backup-directory-alist '(("." . "~/.emacs.d/backups"))
+                 kept-new-versions 6
+                 kept-old-versions 2
+                 version-control t
+                 ;; autosave
+                 auto-save-file-name-transforms `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
+                                                  (".*" "~/.emacs.d/backups" t))
+                 ;; lock files
+                 create-lockfiles nil)
+
+   (transient-mark-mode t)
+   (delete-selection-mode t)
+   ;; (cua-selection-mode t)
+
+  (show-paren-mode 1)
+
+   ;; remember cursor pos
+   (setq save-place t)
+   (require 'saveplace)
+   (setq save-place-file "~/.emacs.d/saved-places")
+#+END_SRC
+
+#+RESULTS:
+: ~/.emacs.d/saved-places
+
+** autopair
+#+BEGIN_SRC emacs-lisp
+(require 'autopair)
+
+(defun inhibit-autopair ()
+  "Prevent autopair from enabling in the current buffer."
+  (setq autopair-dont-activate t)
+  (autopair-mode -1))
+
+(setq autopair-autowrap t)
+(autopair-global-mode t)
+
+(add-hook 'emacs-lisp-mode-hook 'inhibit-autopair)
+(add-hook 'term-mode-hook 'inhibit-autopair)
+(autopair-global-mode t)
+#+END_SRC
+
+* org-mode
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-log-done t
+        org-completion-use-ido nil
+        org-edit-timestamp-down-means-later t
+        org-agenda-start-on-weekday t
+        org-agenda-span 14
+        org-agenda-include-diary t
+        org-agenda-window-setup 'current-window
+        org-fast-tag-selection-single-key nil
+        org-export-kill-product-buffer-when-displayed t
+        org-tags-column 80
+        org-src-tab-acts-natively t
+        org-confirm-babel-evaluate nil
+        org-src-window-setup 'current-window)
+
+  ;; active Babel languages
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((R . t)
+     (emacs-lisp . t)
+     (js . t)))
+
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+
+  ;; (eval-after-load 'org
+  ;;   '(progn
+  ;;      (org-defkey org-mode-map (kbd "<S-return>") 'rk/open-line-above)))
+#+END_SRC
+
+* shell scripting
+#+BEGIN_SRC emacs-lisp
+(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+#+END_SRC
+
+* misc
+** windows
+#+BEGIN_SRC emacs-lisp
+(winner-mode 1) ;; C-c <left>, C-c <right> for back/forth window layout
+
+;;; resize windows interactively, from http://www.emacswiki.org/emacs/WindowResize
+(defun resize-window (&optional arg)    ; Hirose Yuuji and Bob Wiener
+  "*Resize window interactively."
+  (interactive "p")
+  (if (one-window-p) (error "Cannot resize sole window"))
+  (or arg (setq arg 10))
+  (let (c)
+    (catch 'done
+      (while t
+    (message
+     "h=heighten, s=shrink, w=widen, n=narrow (by %d);  1-9=unit, q=quit"
+     arg)
+    (setq c (read-char))
+    (condition-case ()
+        (cond
+         ((= c ?h) (enlarge-window arg))
+         ((= c ?s) (shrink-window arg))
+         ((= c ?w) (enlarge-window-horizontally arg))
+         ((= c ?n) (shrink-window-horizontally arg))
+         ((= c ?\^G) (keyboard-quit))
+         ((= c ?q) (throw 'done t))
+         ((and (> c ?0) (<= c ?9)) (setq arg (- c ?0)))
+         (t (beep)))
+      (error (beep)))))
+    (message "Done.")))
+
+(global-set-key (kbd "<f6>") 'resize-window)
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(add-to-list 'same-window-regexps ".*")
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(eval-after-load "compile"
+'(defun compilation-goto-locus (msg mk end-mk)
+  "Jump to an error corresponding to MSG at MK.
+All arguments are markers.  If END-MK is non-nil, mark is set there
+and overlay is highlighted between MK and END-MK."
+  ;; Show compilation buffer in other window, scrolled to this error.
+  (let* ((from-compilation-buffer (eq (window-buffer (selected-window))
+                  (marker-buffer msg)))
+     ;; Use an existing window if it is in a visible frame.
+     (pre-existing (get-buffer-window (marker-buffer msg) 0))
+     (w (if (and from-compilation-buffer pre-existing)
+        ;; Calling display-buffer here may end up (partly) hiding
+        ;; the error location if the two buffers are in two
+        ;; different frames.  So don't do it if it's not necessary.
+        pre-existing
+      (let ((display-buffer-reuse-frames t)
+        (pop-up-windows t))
+        ;; Pop up a window.
+        (display-buffer (marker-buffer msg)))))
+     (highlight-regexp (with-current-buffer (marker-buffer msg)
+             ;; also do this while we change buffer
+             (compilation-set-window w msg)
+             compilation-highlight-regexp)))
+;; Ideally, the window-size should be passed to `display-buffer' (via
+;; something like special-display-buffer) so it's only used when
+;; creating a new window.
+(unless pre-existing (compilation-set-window-height w))
+
+(switch-to-buffer (marker-buffer mk))
+
+    ;; was
+;; (if from-compilation-buffer
+;;     ;; If the compilation buffer window was selected,
+;;     ;; keep the compilation buffer in this window;
+;;     ;; display the source in another window.
+;;     (let ((pop-up-windows t))
+;;       (pop-to-buffer (marker-buffer mk) 'other-window))
+;;   (if (window-dedicated-p (selected-window))
+;;       (pop-to-buffer (marker-buffer mk))
+;;     (switch-to-buffer (marker-buffer mk))))
+;; If narrowing gets in the way of going to the right place, widen.
+(unless (eq (goto-char mk) (point))
+  (widen)
+  (goto-char mk))
+(if end-mk
+    (push-mark end-mk t)
+  (if mark-active (setq mark-active)))
+;; If hideshow got in the way of
+;; seeing the right place, open permanently.
+(dolist (ov (overlays-at (point)))
+  (when (eq 'hs (overlay-get ov 'invisible))
+    (delete-overlay ov)
+    (goto-char mk)))
+
+(when highlight-regexp
+  (if (timerp next-error-highlight-timer)
+      (cancel-timer next-error-highlight-timer))
+  (unless compilation-highlight-overlay
+    (setq compilation-highlight-overlay
+      (make-overlay (point-min) (point-min)))
+    (overlay-put compilation-highlight-overlay 'face 'next-error))
+  (with-current-buffer (marker-buffer mk)
+    (save-excursion
+      (if end-mk (goto-char end-mk) (end-of-line))
+      (let ((end (point)))
+    (if mk (goto-char mk) (beginning-of-line))
+    (if (and (stringp highlight-regexp)
+         (re-search-forward highlight-regexp end t))
+        (progn
+          (goto-char (match-beginning 0))
+          (move-overlay compilation-highlight-overlay
+                (match-beginning 0) (match-end 0)
+                (current-buffer)))
+      (move-overlay compilation-highlight-overlay
+            (point) end (current-buffer)))
+    (if (or (eq next-error-highlight t)
+        (numberp next-error-highlight))
+        ;; We want highlighting: delete overlay on next input.
+        (add-hook 'pre-command-hook
+              'compilation-goto-locus-delete-o)
+      ;; We don't want highlighting: delete overlay now.
+      (delete-overlay compilation-highlight-overlay))
+    ;; We want highlighting for a limited time:
+    ;; set up a timer to delete it.
+    (when (numberp next-error-highlight)
+      (setq next-error-highlight-timer
+        (run-at-time next-error-highlight nil
+                 'compilation-goto-locus-delete-o)))))))
+(when (and (eq next-error-highlight 'fringe-arrow))
+  ;; We want a fringe arrow (instead of highlighting).
+  (setq next-error-overlay-arrow-position
+    (copy-marker (line-beginning-position)))))))
+#+END_SRC
+
+** frames
+Suppress GUI features
+#+BEGIN_SRC emacs-lisp
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-echo-area-message t)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'set-scroll-bar-mode)
+  (set-scroll-bar-mode nil))
+#+END_SRC
+*** Mac OS fullscreen
+#+BEGIN_SRC emacs-lisp
+  (when (fboundp 'ns-toggle-fullscreen)
+    (defadvice ns-toggle-fullscreen (after mark-full-screen activate)
+      (set-frame-parameter nil
+                           'is-full-screen
+                           (not (frame-parameter nil 'is-full-screen)))))
+
+  (when (and *is-cocoa-emacs* (not (fboundp 'ns-toggle-fullscreen)))
+    (defun ns-toggle-fullscreen ()
+      "Toggle full screen"
+      (interactive)
+      ;; (debug)
+      (set-frame-parameter
+       nil 'fullscreen
+       (when (not (frame-parameter nil 'fullscreen)) 'fullscreen))))
+
+  (when (fboundp 'ns-toggle-fullscreen)
+    ;; Command-Option-f to toggle fullscreen mode
+    (global-set-key (kbd "M-s-ƒ") 'ns-toggle-fullscreen))
+#+END_SRC
+* grep
+#+BEGIN_SRC emacs-lisp
+;; writable grep
+(require 'wgrep)
+(setq wgrep-auto-save-buffer t)
+#+END_SRC
+* dired
+
+#+BEGIN_SRC emacs-lisp
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+;;; wdired
+(eval-after-load "wdired"
+  '(progn (define-key dired-mode-map (kbd "e") 'wdired-change-to-wdired-mode)
+          (setq wdired-allow-to-change-permissions t)))
+#+END_SRC
+
+#+RESULTS:
+
+** languages
+*** lisp
+**** paredit
+#+BEGIN_SRC emacs-lisp
+(autoload 'enable-paredit-mode "paredit")
+
+(defun maybe-map-paredit-newline ()
+  (unless (or (eq major-mode 'inferior-emacs-lisp-mode) (minibufferp))
+    (local-set-key (kbd "RET") 'paredit-newline)))
+
+(add-hook 'paredit-mode-hook 'maybe-map-paredit-newline)
+
+(eval-after-load 'paredit
+  '(progn
+     ;; These are handy everywhere, not just in lisp modes
+     (global-set-key (kbd "M-(") 'paredit-wrap-round)
+     (global-set-key (kbd "M-[") 'paredit-wrap-square)
+     (global-set-key (kbd "M-{") 'paredit-wrap-curly)
+
+     (global-set-key (kbd "M-)") 'paredit-close-round-and-newline)
+     (global-set-key (kbd "M-]") 'paredit-close-square-and-newline)
+     (global-set-key (kbd "M-}") 'paredit-close-curly-and-newline)
+
+     (dolist (binding (list (kbd "C-<left>") (kbd "C-<right>")
+                            (kbd "C-M-<left>") (kbd "C-M-<right>")))
+       (define-key paredit-mode-map binding nil))
+
+     ;; Disable kill-sentence, which is easily confused with the kill-sexp
+     ;; binding, but doesn't preserve sexp structure
+     (define-key paredit-mode-map [remap kill-sentence] nil)
+     (define-key paredit-mode-map [remap backward-kill-sentence] nil)))
+
+
+;; Compatibility with other modes
+
+(defadvice enable-paredit-mode (before disable-autopair activate)
+  (inhibit-autopair))
+
+(add-hook 'minibuffer-setup-hook 'conditionally-enable-paredit-mode)
+
+
+(defvar paredit-minibuffer-commands '(eval-expression
+                                      pp-eval-expression
+                                      eval-expression-with-eldoc)
+  "Interactive commands for which paredit should be enabled in the minibuffer.")
+
+(defun conditionally-enable-paredit-mode ()
+  "Enable paredit during lisp-related minibuffer commands."
+  (if (memq this-command paredit-minibuffer-commands)
+      (enable-paredit-mode)))
+
+(defun lisp-setup ()
+  "Enable features useful in any Lisp mode."
+  (enable-paredit-mode)
+  (turn-on-eldoc-mode))
+
+(let* ((lispy-hooks '(emacs-lisp-mode-hook
+                      ielm-mode-hook
+                      lisp-mode-hook
+                      inferior-lisp-mode-hook
+                      lisp-interaction-mode-hook)))
+  (dolist (hook lispy-hooks)
+    (add-hook hook 'lisp-setup)))
+
+
+;; (define-key emacs-lisp-mode-map (kbd "C-x C-a") 'pp-macroexpand-last-sexp)
+
+;; ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+;; (defun rk/bounds-of-defun ()
+;;   "uses beginning-of-defun and end-of-defun to determine the bounds"
+;;   (save-excursion
+;;     `(,(progn (beginning-of-defun) (point)) . ,(progn (end-of-defun) (point)))))
+
+;; (defun rk/eval-defun-flash ()
+;;   (interactive)
+;;   (let* ((bounds (rk/bounds-of-defun))
+;;          (start (car bounds))
+;;          (end (cdr bounds)))
+;;     (slime-flash-region start end 0.7)
+;;     (eval-region start end t)))
+
+;; (define-key emacs-lisp-mode-map (kbd "M-SPC") 'rk/eval-defun-flash)
+#+END_SRC
+
+* version control
+** magit
+#+BEGIN_SRC emacs-lisp
+  (setq magit-save-some-buffers nil
+        magit-process-popup-time 10
+        magit-completing-read-function 'magit-ido-completing-read
+        magit-log-auto-more t
+        magit-log-cutoff-length 300)
+
+  (defun magit-status-somedir ()
+    (interactive)
+    (let ((current-prefix-arg t))
+      (magit-status default-directory)))
+
+  (global-set-key (kbd "C-c g s") 'magit-status-somedir)
+#+END_SRC
+* my own helpers
+** buffers
+#+BEGIN_SRC emacs-lisp
+;;; http://stackoverflow.com/questions/3669511/the-function-to-show-current-files-full-path-in-mini-buffer
+(defun rk/copy-full-path-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (let ((file-name (file-truename buffer-file-name)))
+      (message file-name)
+      (kill-new file-name))))
+
+(defun rk/copy-buffer-name-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (let ((name (file-name-nondirectory buffer-file-name)))
+      (message name)
+      (kill-new name))))
+#+END_SRC
+
+
+** editing commands
+*** lines
+#+BEGIN_SRC emacs-lisp
+(defun rk/open-line-below ()
+  (interactive)
+  (end-of-line)
+  (newline)
+  (indent-for-tab-command))
+
+(defun rk/open-line-above ()
+  (interactive)
+  (beginning-of-line)
+  (newline)
+  (forward-line -1)
+  (indent-for-tab-command))
+#+END_SRC
+
+* key setup
+
+#+BEGIN_SRC emacs-lisp
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; keys
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;; Activate occur easily inside isearch
+  (define-key isearch-mode-map (kbd "C-o")
+    (lambda () (interactive)
+      (let ((case-fold-search isearch-case-fold-search))
+        (occur (if isearch-regexp isearch-string (regexp-quote isearch-string))))))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; umlauts
+  (global-unset-key (kbd "M-u"))
+  (global-set-key (kbd "M-u a") (lambda () (interactive) (insert ?\ä)))
+  (global-set-key (kbd "M-u o") (lambda () (interactive) (insert ?\õ)))
+  (global-set-key (kbd "M-u u") (lambda () (interactive) (insert ?\ü)))
+  (global-set-key (kbd "M-u A") (lambda () (interactive) (insert ?\Ä)))
+  (global-set-key (kbd "M-u O") (lambda () (interactive) (insert ?\Ö)))
+  (global-set-key (kbd "M-u U") (lambda () (interactive) (insert ?\Ü)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (require 'subword)
+  (global-set-key [C-s-268632066] 'subword-backward) ; C-s-f
+  (global-set-key [C-s-268632070] 'subword-forward) ; C-s-b
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  (defun rk/move-beginning-of-line (arg)
+    "move either at `bol' or when already there then in front of
+  the first non-whitespace char"
+    (interactive "p")
+    (let ((was-at-bol (bolp)))
+      (move-beginning-of-line arg)
+      (when was-at-bol
+        (skip-chars-forward "\* \t"))))
+
+  (global-set-key (kbd "C-a") 'rk/move-beginning-of-line)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; moving text, really important
+  (global-set-key [C-s-268632080] (lambda (arg) ; C-s-p
+                                    (interactive "p")
+                                    (move-text-up arg)
+                                    (previous-line arg)))
+
+  (global-set-key [C-s-268632078] 'move-text-down) ; C-s-n
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; select line
+  (defun rk/mark-line ()
+    "activates the mark for the whole line. If line is already
+  marked, shrinks the selection to the first non-whitespace char
+  and end of the lines. Further command execution toggle between
+  the states"
+    (interactive)
+    (let* ((start (if (region-active-p) (region-beginning) (point-at-bol)))
+          (end (if (region-active-p) (region-end) (point-at-eol)))
+          (line-marked-p (and (region-active-p) (= start (point-at-bol)) (= end (point-at-eol)))))
+      (setq start (if line-marked-p
+                      (save-excursion
+                        ;; point in front of the first non-whitespace char
+                        (beginning-of-line) (skip-chars-forward "\* \t")
+                        (point))
+                    ;; push the current pos first so we can easily jump back
+                    (push-mark nil t) (point-at-bol)))
+      (push-mark start t t)
+      (goto-char end)))
+
+  (global-set-key (kbd "s-l") 'rk/mark-line)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (global-set-key (kbd "C-c j") 'join-line)
+  (global-set-key (kbd "C-c J") (lambda () (interactive) (join-line 1)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; duplicate line
+  (defun duplicate-line (arg)
+    "Duplicates the current line and inserts it above. If called
+  with prefix `arg' inserts lien below"
+    (interactive "P")
+    (message (prin1-to-string arg))
+    (save-excursion
+      (let ((line-text (buffer-substring-no-properties
+                        (line-beginning-position)
+                        (line-end-position))))
+        (if arg (move-end-of-line 1) (move-beginning-of-line 1))
+        (newline)
+        (unless arg (previous-line))
+        (insert line-text))))
+
+  (global-set-key (kbd "C-c p") 'duplicate-line)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; remove until line start
+  (defun rk/delete-backward-line (region-start region-end)
+    "If there is an active region, delete it. Otherwise remove everything
+  from the beginning of the line to the current point.
+  If point is at line start, remove line break."
+    (interactive "r")
+    (if (region-active-p)
+        (delete-region region-start region-end)
+      (let ((pos (point))
+          (line-start-pos (save-excursion (forward-line 0) (point))))
+      (delete-region
+       (if (equal pos line-start-pos) (- pos 1) line-start-pos)
+       (point)))))
+
+  (global-set-key [s-backspace] 'rk/delete-backward-line)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  (global-set-key (kbd "s-w") 'kill-this-buffer)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (global-set-key [C-backspace] 'kill-word)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;;; escape as quit
+  (defun rk/escape-key-action ()
+    (interactive)
+    (if (region-active-p)
+        (progn
+          (exchange-point-and-mark)
+          (keyboard-quit))
+      (keyboard-quit)))
+
+  (global-set-key [escape] 'rk/escape-key-action)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;;; for quickcursor edits
+  (global-set-key [C-f11] 'server-edit)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (fset 'open-eshell-minimized
+     (lambda (&optional arg) "Keyboard macro." (interactive "p") (kmacro-exec-ring-item (quote ([24 50 s-next f6 115 115 115 115 115 115 115 115 115 115 115 115 115 113] 0 "%d")) arg)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (require 'iy-go-to-char)
+  (global-set-key (kbd "s-.") 'iy-go-to-char)
+  (global-set-key (kbd "C-c .") 'iy-go-to-char)
+  (global-set-key (kbd "s-,") 'iy-go-to-char-backward)
+  (global-set-key (kbd "C-c ,") 'iy-go-to-char-backward)
+  (setq iy-go-to-char-key-forward nil
+        iy-go-to-char-key-backward nil)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; ace
+  (require 'ace-jump-mode)
+  (global-set-key (kbd "s-j") 'ace-jump-mode)
+  (global-set-key (kbd "C-c j") 'ace-jump-mode)
+  (global-set-key (kbd "s-J") 'ace-jump-mode-pop-mark)
+  (set-default 'ace-jump-mode-submode-list '(ace-jump-char-mode
+                                             ace-jump-word-mode
+                                             ace-jump-line-mode))
+
+  (require 'cl)
+  (setq ace-jump-mode-scope 'window
+        ace-jump-mode-move-keys (loop for i from ?a to ?z collect i)
+        ace-jump-mode-case-fold nil)
+
+  (ace-jump-mode-enable-mark-sync)
+  (define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; artist mode
+  (eval-after-load "artist"
+    '(progn
+      (define-key artist-mode-map (kbd "s-o") 'artist-select-operation)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (global-set-key (kbd "M-/") 'hippie-expand)
+  (global-set-key (kbd "s-?") 'auto-complete)
+
+  (set-default 'yas/trigger-key "s-\\")
+  ;; (yas/initialize)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (defun rk/shell-mode-add-keys ()
+    (local-set-key (kbd "s-p") (lambda () (interactive) (rk/shell-exec-expression 4)))
+    (local-set-key (kbd "s-d") 'rk/shell-exec-expression))
+
+  (add-hook 'sh-mode-hook 'rk/shell-mode-add-keys)
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; init multiple cursors
+  (require 'multiple-cursors)
+
+  ;(define-key cua-global-keymap [(control return)] 'set-rectangular-region-anchor)
+  (global-set-key [(control return)] 'set-rectangular-region-anchor)
+
+  (global-set-key [C-s-268632067] 'mc/edit-lines)  ; C-s-c
+  (global-set-key [C-s-268632069] 'mc/edit-ends-of-lines)  ; C-s-e
+  (global-set-key [C-s-268632065] 'mc/edit-beginnings-of-lines)  ; C-s-a
+
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+  (global-set-key (kbd "C-M-n") 'mc/mark-next-lines)
+  (global-set-key (kbd "C-M-p") 'mc/mark-previous-lines)
+  (global-set-key (kbd "<M-return>") 'mc/mark-more-like-this-extended) ; like the other two, but takes an argument (negative is previous)
+
+  (define-key mc/keymap (kbd "<escape>") 'multiple-cursors-mode)
+  (define-key mc/keymap (kbd "<return>") nil) ; <return> should work with mc
+
+  (defun rk/eval-and-replace-last-sexp (value)
+    "Evaluate the sexp at point and replace it with its value"
+    (interactive (list (eval-last-sexp nil)))
+    (kill-sexp -1)
+    (insert (format "%S" value)))
+
+  (global-set-key (kbd "C-x C-r") 'rk/eval-and-replace-last-sexp)
+
+  (global-set-key (kbd "C-x C-p") 'eval-print-last-sexp)
+
+  (global-set-key (kbd "C-x p") 'mark-page)
+
+  ;;; expand-region
+  (require 'expand-region)
+  (global-set-key (kbd "S-s-SPC") 'er/expand-region)
+  (global-set-key [C-s-268632064] 'er/contract-region) ; C-s-SPC
+#+END_SRC
+
+* theming / colors
+** theme
+#+BEGIN_SRC emacs-lisp
+(load-theme 'tango-dark)
+ #+END_SRC)
+** font size
+#+BEGIN_SRC emacs-lisp
+(require 'cl)
+
+(defun font-name-replace-size (font-name new-size)
+  (let ((parts (split-string font-name "-")))
+    (setcar (nthcdr 7 parts) (format "%d" new-size))
+    (mapconcat 'identity parts "-")))
+
+(defun increment-default-font-height (delta)
+  "Adjust the default font height by DELTA on every frame.
+The pixel size of the frame is kept (approximately) the same.
+DELTA should be a multiple of 10, in the units used by the
+:height face attribute."
+  (let* ((new-height (+ (face-attribute 'default :height) delta))
+         (new-point-height (/ new-height 10)))
+    (dolist (f (frame-list))
+      (with-selected-frame f
+        ;; Latest 'set-frame-font supports a "frames" arg, but
+        ;; we cater to Emacs 23 by looping instead.
+        (set-frame-font (font-name-replace-size (face-font 'default)
+                                                new-point-height)
+                        t)))
+    (set-face-attribute 'default nil :height new-height)
+    (message "default font size is now %d" new-point-height)))
+
+(defun increase-default-font-height ()
+  (interactive)
+  (increment-default-font-height 10))
+
+(defun decrease-default-font-height ()
+  (interactive)
+  (increment-default-font-height -10))
+
+(global-set-key (kbd "C-M-=") 'increase-default-font-height)
+(global-set-key (kbd "C-M--") 'decrease-default-font-height)
+#+END_SRC
+
+** font lock
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values (quote ((js3-indent-level . 2)))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(diff-added ((t (:inherit diff-changed :background "color-28"))))
+ '(diff-header ((t (:background "grey20"))))
+ '(diff-removed ((t (:inherit diff-changed :background "red")))))
+#+END_SRC
