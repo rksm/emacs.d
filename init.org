@@ -101,19 +101,28 @@ ELPA/marmalade repos.
 
 ** autopair
 #+BEGIN_SRC emacs-lisp
-(require 'autopair)
-
-(defun inhibit-autopair ()
-  "Prevent autopair from enabling in the current buffer."
-  (setq autopair-dont-activate t)
-  (autopair-mode -1))
-
-(setq autopair-autowrap t)
-(autopair-global-mode t)
-
-(add-hook 'emacs-lisp-mode-hook 'inhibit-autopair)
-(add-hook 'term-mode-hook 'inhibit-autopair)
-(autopair-global-mode t)
+  (require 'autopair)
+  
+  (defun inhibit-autopair ()
+    "Prevent autopair from enabling in the current buffer."
+    (setq autopair-dont-activate t)
+    (autopair-mode -1))
+  
+  (setq autopair-autowrap t)
+  (autopair-global-mode t)
+  
+  (add-hook 'emacs-lisp-mode-hook 'inhibit-autopair)
+  (add-hook 'term-mode-hook 'inhibit-autopair)
+  (autopair-global-mode t)
+  
+  ;; autopair delete-selection-mode compat:
+  (put 'autopair-insert-opening 'delete-selection t)
+  (put 'autopair-skip-close-maybe 'delete-selection t)
+  (put 'autopair-insert-or-skip-quote 'delete-selection t)
+  (put 'autopair-extra-insert-opening 'delete-selection t)
+  (put 'autopair-extra-skip-close-maybe 'delete-selection t)
+  (put 'autopair-backspace 'delete-selection 'supersede)
+  (put 'autopair-newline 'delete-selection t)
 #+END_SRC
 
 * org-mode
