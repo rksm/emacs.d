@@ -31,6 +31,7 @@
         js3-end-of-line
         js3-enter-key
         js3-mark-defun
+        kill-region
         mark-word
         markdown-cycle
         markdown-enter-key
@@ -47,6 +48,7 @@
         org-shiftright
         org-todo
         paredit-backward-delete
+        paredit-backward-up
         paredit-close-round
         paredit-comment-dwim
         paredit-doublequote
