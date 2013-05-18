@@ -10,31 +10,31 @@
 ELPA/marmalade repos.
 
 #+BEGIN_SRC emacs-lisp
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  ;; packages
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  (require 'package)
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-  (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/"))
-  (package-initialize)
-  (package-refresh-contents)
-  
-  (defvar my-packages
-    '(iy-go-to-char
-      ace-jump-mode
-      multiple-cursors
-      expand-region
-      wgrep
-      paredit
-      magit
-      ;; clojure-mode
-      ;; clojure-test-mode
-      ;; nrepl
-      ))
-  
-  (dolist (p my-packages)
-    (when (not (package-installed-p p))
-      (package-install p)))
+    (require 'package)
+    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+    (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/") t)
+    (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+    (package-initialize)
+    (package-refresh-contents)
+    
+    (defvar my-packages
+      '(iy-go-to-char
+        ace-jump-mode
+        multiple-cursors
+        expand-region
+        move-text
+        helm
+        wgrep
+        paredit
+        magit
+        ;; clojure-mode
+        ;; clojure-test-mode
+        ;; nrepl
+        ))
+    
+    (dolist (p my-packages)
+      (when (not (package-installed-p p))
+        (package-install p)))
 #+END_SRC
 * generic settings
 ** system-related
@@ -413,6 +413,60 @@ Suppress GUI features
       (magit-status default-directory)))
 
   (global-set-key (kbd "C-c g s") 'magit-status-somedir)
+* helm
+#+BEGIN_SRC emacs-lisp
+  (require 'helm-config)
+  (helm-mode 1)
+  
+  (setq helm-candidate-number-limit nil
+        helm-samewindow nil ;; already covered by my window init
+        helm-c-use-adaptative-sorting t
+        enable-recursive-minibuffers t)
+  
+  (defun rk/helm-symbols (arg)
+    (interactive "P")
+    ;; see `helm-occur'
+    (let ((init (and (equal arg '(4)) (thing-at-point 'symbol)))
+          (buffers (list (current-buffer)))
+          (helm-multi-occur-buffer-list (list (buffer-name (current-buffer))))
+          ;; (helm-compile-source-functions
+          ;;  ;; rule out helm-match-plugin because the input is one regexp
+          ;;  (delq 'helm-compile-source--match-plugin
+          ;;        (copy-sequence helm-compile-source-functions)))
+          )
+      (helm-occur-init-source)
+      (helm-attrset 'name "Occur" helm-c-source-occur)
+      (helm :prompt "Search for symbol: "
+            :input init
+            :default (thing-at-point 'symbol)
+            :sources '(helm-c-source-imenu
+                       helm-c-source-occur)
+            :buffer "*helm symbols*")))
+  
+  (defvar rk/helm-c-source-projectf
+    '((name . "Project files")
+      (disable-shortcuts) ;; Needed for filenames with capitals letters.
+      (candidates . (lambda () (with-helm-current-buffer
+                            (let ((dir (rk/project-root)))
+                              (mapcar (lambda (ea) (concat dir ea)) (rk/project-files dir))))))
+      (type . file))
+    "Uses `rk/project-files' as input.")
+  
+  (defun rk/helm-projectf ()
+    (interactive)
+    (helm :sources 'rk/helm-c-source-projectf
+          :buffer "*helm project files*"))
+  
+  (defun rk/helm-buffers-and-files ()
+    (interactive)
+    (helm
+     :prompt "Switch to: "
+     :candidate-number-limit 20
+     :sources '(helm-c-source-buffers-list
+                rk/helm-c-source-projectf
+                helm-c-source-recentf
+                helm-c-source-bookmarks)))
+  
 #+END_SRC
 * my own helpers
 ** buffers
@@ -465,6 +519,16 @@ Suppress GUI features
        (define-key map (kbd "<s-prior>") 'windmove-up)
        (define-key map (kbd "<s-next>") 'windmove-down))))
 #+END_SRC
+
+** for helm
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-x b") 'rk/helm-buffers-and-files)
+  
+  (define-key helm-command-map (kbd "i") 'rk/helm-symbols)
+  (define-key helm-command-map (kbd "b") 'rk/helm-buffers-and-files)
+  (define-key helm-command-map (kbd "g") 'helm-do-grep)
+#+END_SRC
+** misc
 #+BEGIN_SRC emacs-lisp
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; keys
