@@ -299,6 +299,97 @@ Suppress GUI features
     ;; Command-Option-f to toggle fullscreen mode
     (global-set-key (kbd "M-s-ƒ") 'ns-toggle-fullscreen))
 #+END_SRC
+* project support
+** find stuff
+#+BEGIN_SRC emacs-lisp
+  ;;; adapted from textmate.el
+  
+  ;;;;;;;;;;;;
+  ;; helper ;;
+  ;;;;;;;;;;;;
+  
+  ;; http://snipplr.com/view/18683/stringreplace/
+  (defun rk/string-replace (this withthat in)
+    "replace THIS with WITHTHAT' in the string IN"
+    (with-temp-buffer
+      (insert in)
+      (goto-char (point-min))
+      (while (search-forward this nil t)
+        (replace-match withthat nil t))
+      (buffer-substring (point-min) (point-max))))
+  
+  ;;;;;;;;;;;;;;;;;;
+  ;; project root ;;
+  ;;;;;;;;;;;;;;;;;;
+  (defvar *rk/project-root* nil
+    "Used internally to cache the project root.")
+  
+  (defvar *rk/project-roots* '(".git" ".hg" "Rakefile" "Makefile" "README" "README.md" "build.xml" ".emacs-project")
+  "The presence of any file/directory in this list indicates a project root.")
+  
+  (defun rk/find-project-root (&optional root)
+    "Determines the current project root by recursively searching for an indicator."
+    (when (null root) (setq root default-directory))
+    (cond
+     ((rk/root-matches root *rk/project-roots*)
+      (expand-file-name root))
+     ((equal (expand-file-name root) "/") nil)
+     (t (rk/find-project-root (concat (file-name-as-directory root) "..")))))
+  
+  (defun rk/project-root ()
+    "Returns the current project root."
+    (when (or
+           (null *rk/project-root*)
+           (not (string-match *rk/project-root* default-directory)))
+      (let ((root (rk/find-project-root)))
+        (if root
+            (setq *rk/project-root* (expand-file-name (concat root "/")))
+          (setq *rk/project-root* nil))))
+    ,*rk/project-root*)
+  
+  ;;; -=-=-=-=-=-=-=-=-=-
+  
+  (defun rk/root-match(root names)
+    (member (car names) (directory-files root)))
+  
+  (defun rk/root-matches(root names)
+    (if (rk/root-match root names)
+        (rk/root-match root names)
+        (if (eq (length (cdr names)) 0)
+            'nil
+            (rk/root-matches root (cdr names)))))
+  
+  ;;;;;;;;;;;;;;;;
+  ;; find files ;;
+  ;;;;;;;;;;;;;;;;
+  (defun rk/find-project-files (root)
+    "Finds all files in a given 'project'. What a project is, is determined by textmate.
+  Contrary to 'textmate-find-project-files' this search uses find and it's prune option to
+  not recurse into dirs that should be ignored. The shell command  outputed is sth like
+  find -E . \\( -type f -a -not \\( -name \"*#\" -o -name \".gitignore\" -o -name \"*~\" -o -name \"*.lock\" -o -name \"*.DS_Store\" -o -name \"*elc\" \\) \\) -o -type d \\( -name \".git\" -o -name \".svn\" -o -name \"vendor\" -o -name \"fixtures\" -o -name \"tmp\" -o -name \"log\" -o -name \"classes\" -o -name \"build\" -o -name \"_temp\" \\) -not -prune | sed 's:/Users/robert/robertkrahn.org/notes//::'"
+    (flet ((as-name-arg (string) (concat "-name \"" string "\""))
+           ;; when rk/find-file-ignores = '("*#" ".gitignore") this
+           ;; outputs "-name \"*#\" -o -name \".gitignore\""
+           (make-ignore-args (ignore-list) (mapconcat 'as-name-arg ignore-list " -o ")))
+      (split-string (shell-command-to-string
+                     (concat "find -E " root " \\( -type f -a -not \\( "
+                             (make-ignore-args rk/find-file-ignores)
+                             " \\) \\) -o -type d \\( "
+                             (make-ignore-args rk/find-dir-ignores)
+                             " \\) -not -prune | sed 's:"
+                             ,*rk/project-root*
+                             "/::'")) "\n" t)))
+  
+  (setq
+   rk/find-file-ignores '("*#" ".gitignore" "*~" "*.lock" "*.DS_Store" "*elc" "*.xcodeproj" "*.nib" "*.framework" "*.app" "*.pbproj" "*.pbxproj" "*.xcode" "*.xcodeproj" "*.bundle" "*.pyc" "*.elc")
+   rk/find-dir-ignores '(".git" ".svn" "vendor" "fixtures" "tmp" "log" "classes" "build" "*_temp"))
+  
+  (defun rk/project-files (root)
+    (sort
+      (rk/find-project-files root)
+      '(lambda (a b) (< (length a) (length b)))))
+  
+#+END_SRC
 * grep
 #+BEGIN_SRC emacs-lisp
 ;; writable grep
