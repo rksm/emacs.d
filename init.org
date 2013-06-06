@@ -36,6 +36,10 @@ ELPA/marmalade repos.
       (when (not (package-installed-p p))
         (package-install p)))
 #+END_SRC
+** site-lisp
+#+BEGIN_SRC elisp
+  (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "fringemark"))
+#+END_SRC
 * generic settings
 ** system-related
 #+BEGIN_SRC emacs-lisp
@@ -98,6 +102,21 @@ ELPA/marmalade repos.
    (setq save-place-file "~/.emacs.d/saved-places")
 #+END_SRC
 
+** buffer related
+#+BEGIN_SRC elisp
+  (require 'fringemark)
+  (defun rk/fringe-shrink ()
+    "for focusing on one buffer"
+    (interactive)
+    (let* ((target-frame-width 800)
+          (required-fringe-width (- (frame-pixel-width) target-frame-width)))
+      (unless (< (frame-pixel-width) target-frame-width)
+        (set-fringe-style (floor required-fringe-width 2)))))
+  
+  (defun rk/fringe-widen ()
+    (interactive)
+    (set-fringe-style nil))
+#+END_SRC
 * org-mode
 
 #+BEGIN_SRC emacs-lisp
