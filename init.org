@@ -105,6 +105,24 @@ ELPA/marmalade repos.
    (setq save-place-file "~/.emacs.d/saved-places")
 #+END_SRC
 
+* useful functions
+** strings and list processing
+#+BEGIN_SRC emacs-lisp
+(defun rk/string-join (list &optional separator item-converter)
+  (mapconcat (or item-converter 'identity) list (or separator "\n")))
+
+(defun rk/filter (condp lst)
+  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
+(defun rk/string-match (string regexp index-or-list)
+  "match string with regexp and return those matches defined by `index-or-list'"
+  (save-match-data
+    (let ((success (string-match regexp string)))
+     (when success
+       (if (numberp index-or-list)
+           (match-string-no-properties index-or-list string)
+         (mapcar (lambda (n) (match-string-no-properties n string)) index-or-list))))))
+#+END_SRC
 ** buffer related
 #+BEGIN_SRC elisp
   (require 'fringemark)
@@ -119,6 +137,36 @@ ELPA/marmalade repos.
   (defun rk/fringe-widen ()
     (interactive)
     (set-fringe-style nil))
+#+END_SRC
+** comments
+#+BEGIN_SRC elisp
+  ;;; allow-line-as-region-for-function adds an "-or-line" version of
+  ;;; the given comment function which (un)comments the current line is
+  ;;; the mark is not active.  This code comes from Aquamac's osxkeys.el
+  ;;; and is licensed under the GPL
+  
+  (defmacro allow-line-as-region-for-function (orig-function)
+  `(defun ,(intern (concat (symbol-name orig-function) "-or-line"))
+     ()
+     ,(format "Like `%s', but acts on the current line if mark is not active."
+              orig-function)
+     (interactive)
+     (if mark-active
+         (call-interactively (function ,orig-function))
+       (save-excursion
+         ;; define a region (temporarily) -- so any C-u prefixes etc. are preserved.
+         (beginning-of-line)
+         (set-mark (point))
+         (end-of-line)
+         (call-interactively (function ,orig-function))))))
+  
+  (defun rk/define-comment-line ()
+    "Add or-line (un)comment function if not already defined"
+    (unless (fboundp 'comment-or-uncomment-region-or-line)
+      (allow-line-as-region-for-function comment-or-uncomment-region)))
+  
+  (rk/define-comment-line)
+  
 #+END_SRC
 * org-mode
 
