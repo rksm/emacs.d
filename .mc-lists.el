@@ -68,6 +68,7 @@
         rk/transpose-region-active-with-region-1
         rk/transpose-region-remember-region-1
         sgml-close-tag
+        sh-assignment
         textmate-shift-left
         textmate-shift-right
         upcase-region
