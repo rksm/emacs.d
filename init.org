@@ -10,31 +10,34 @@
 ELPA/marmalade repos.
 
 #+BEGIN_SRC emacs-lisp
-    (require 'package)
-    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
-    (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/") t)
-    (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
-    (package-initialize)
-    (package-refresh-contents)
-    
-    (defvar my-packages
-      '(iy-go-to-char
-        ace-jump-mode
-        multiple-cursors
-        expand-region
-        move-text
-        helm
-        wgrep
-        paredit
-        magit
-        ;; clojure-mode
-        ;; clojure-test-mode
-        ;; nrepl
-        ))
-    
-    (dolist (p my-packages)
-      (when (not (package-installed-p p))
-        (package-install p)))
+  (require 'package)
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+  (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/") t)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+  (package-initialize)
+  (package-refresh-contents)
+  
+  ;; (makunbound 'my-packages)
+  (defvar my-packages
+    '(iy-go-to-char
+      ace-jump-mode
+      multiple-cursors
+      expand-region
+      move-text
+      auto-complete
+      helm
+      wgrep
+      magit
+      ;; js
+      js3-mode
+      ;; lispy things
+      rainbow-delimiters
+      paredit
+      clojure-mode clojure-test-mode nrepl ac-nrepl))
+  
+  (dolist (p my-packages)
+    (when (not (package-installed-p p))
+      (package-install p)))
 #+END_SRC
 ** site-lisp
 #+BEGIN_SRC elisp
