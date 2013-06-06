@@ -714,8 +714,10 @@ Suppress GUI features
   (define-key vc-prefix-map (kbd "SPC") 'magit-status-somedir)
 #+END_SRC
 * helm
+** basics
 #+BEGIN_SRC emacs-lisp
   (require 'helm-config)
+  (require 'helm-imenu)
   (helm-mode 1)
   
   (setq helm-candidate-number-limit nil
@@ -766,6 +768,345 @@ Suppress GUI features
                 rk/helm-c-source-projectf
                 helm-c-source-recentf
                 helm-c-source-bookmarks)))
+  
+#+END_SRC
+** auto-complete
+#+BEGIN_SRC emacs-lisp
+  (defvar rk/helm-c-source-ac-completion
+    '((name . "Auto Completion")
+      (init . (lambda ()
+                (with-helm-current-buffer
+                  (ac-abort)
+                  (ac-start)
+                  (helm-attrset 'ac-candidates (ac-candidates))
+                  (ac-abort))))
+      (candidates . (lambda () (helm-attr 'ac-candidates)))
+      (action . (lambda (partial) (insert-and-inherit partial
+                              ;; fixme not only usable for js...
+                              ;; (substring partial (length (rk/ac-slime-js-prefix-string)))
+                                   
+                              )))
+      ))
+  
+  (defun rk/helm-ac-completion ()
+    (interactive)
+    (helm
+     :prompt "Completion: "
+     :sources '(rk/helm-c-source-ac-completion)))
+#+END_SRC
+* auto-complete
+#+BEGIN_SRC emacs-lisp
+  ;; -*-no-byte-compile: t; -*-
+  
+  (require 'auto-complete)
+  (require 'auto-complete-config)
+  (global-auto-complete-mode t)
+  (setq ac-auto-start nil)
+  (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
+  (setq ac-quick-help-delay 0.3)
+  (setq ac-use-fuzzy t)
+  (define-key ac-completing-map (kbd "C-n") 'ac-next)
+  (define-key ac-completing-map (kbd "C-p") 'ac-previous)
+  
+  ;;----------------------------------------------------------------------------
+  ;; Use Emacs' built-in TAB completion hooks to trigger AC (Emacs >= 23.2)
+  ;;----------------------------------------------------------------------------
+  (setq tab-always-indent t)  ;; use 'complete when auto-complete is disabled
+  (add-to-list 'completion-styles 'initials t)
+  
+  ;; hook AC into completion-at-point
+  (defun set-auto-complete-as-completion-at-point-function ()
+    (setq completion-at-point-functions '(auto-complete)))
+  (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+  
+  
+  (set-default 'ac-sources
+               '(ac-source-dictionary
+                 ac-source-words-in-buffer
+                 ac-source-words-in-same-mode-buffers
+                 ac-source-words-in-all-buffer))
+  
+  (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
+                  sass-mode yaml-mode csv-mode espresso-mode haskell-mode
+                  html-mode sh-mode clojure-mode
+                  lisp-mode textile-mode markdown-mode tuareg-mode
+                  js3-mode css-mode less-css-mode
+                  octave-mode))
+    (add-to-list 'ac-modes mode))
+  
+  
+  ;; Exclude very large buffers from dabbrev
+  (defun sanityinc/dabbrev-friend-buffer (other-buffer)
+    (< (buffer-size other-buffer) (* 1 1024 1024)))
+  
+  (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
+  
+#+END_SRC
+* social
+** erc
+#+BEGIN_SRC elisp
+    (require 'erc)
+    
+    (setq erc-hide-list '("JOIN" "PART" "QUIT")
+          erc-nick "rksm"
+          erc-notifications-mode t)
+    
+    (erc-autojoin-mode t)
+    (setq erc-autojoin-channels-alist
+      '((".*\\.freenode.net" "#emacs" "#Node.js" "#clojure" "#ace")))
+    
+    
+    
+#+END_SRC
+* javascript
+** js3
+#+BEGIN_SRC elisp
+  
+  (defvar js-modes '(js-mode js2-mode js3-mode))
+  
+  (defmacro add-mode-hook-for-js (hook-function &optional append)
+    `(dolist (hook '(js-mode-hook js2-mode-hook js3-mode-hook))
+       (add-hook hook ,hook-function ,append)))
+  
+  (defcustom preferred-javascript-mode 'js3-mode
+    "Javascript mode to use for .js files"
+    :type 'symbol
+    :group 'programming
+    :options js-modes)
+  
+  (defvar preferred-mmm-javascript-mode 'js-mode)
+  (defvar preferred-javascript-indent-level 4)
+  
+  ;; js2-mode
+  (setq js2-use-font-lock-faces t
+        js2-mode-must-byte-compile nil
+        js2-basic-offset preferred-javascript-indent-level
+        js2-indent-on-enter-key t
+        js2-auto-indent-p t
+        js2-bounce-indent-p t)
+  
+  ;; js-mode
+  (setq js-flat-functions t)
+  (setq js-indent-level preferred-javascript-indent-level)
+  
+  ;; (eval-after-load "js"
+  ;;   '(progn
+  ;;      (modify-syntax-entry ?- "_" js-mode-syntax-table)))
+  
+  ;; standard javascript-mode
+  (setq javascript-indent-level preferred-javascript-indent-level)
+  
+  
+  ;; MMM submode regions in html
+  (eval-after-load 'mmm-vars
+    `(progn
+       (mmm-add-group
+        'html-js
+        '((js-script-cdata
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "<script[^>]*>[ \t\n]*\\(//\\)?<!\\[CDATA\\[[ \t]*\n?"
+           :back "[ \t]*\\(//\\)?]]>[ \t\n]*</script>"
+           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
+                        @ "\n" _ "\n" @ "</script>" @)))
+          (js-script
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "<script[^>]*>[ \t]*\n?"
+           :back "[ \t]*</script>"
+           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
+                        @ "\n" _ "\n" @ "</script>" @)))
+          (js-inline
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "on\w+=\""
+           :back "\"")))
+       (dolist (mode (list 'html-mode))
+         (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?$" 'html-js))))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  ;;; no annoying warnings (help-echos) that won't go away for js3
+  (add-hook 'js3-mode-hook (lambda () (tooltip-mode -1)))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  
+  ;; use jshint
+  ;; On-the-fly syntax checking
+  ;; (require 'flymake-jshint)
+  ;; (setq flymake-jslint-command "jshint")
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  
+  ;;; js3 specific
+  (eval-after-load "js3"
+    '(progn
+      (defadvice js3-end-of-line (before js3-eol-support-mark)
+       "allow to set mark int transient mark mode"
+       (rk/set-mark-on-shift-press))
+  
+      (defadvice js3-beginning-of-line (before js3-bol-support-mark)
+       "allow to set mark int transient mark mode"
+       (rk/set-mark-on-shift-press))
+  
+      ;; (defadvice js3-mode-create-imenu-index (after js3-lively-imneu-defs)
+      ;;   "Add Lively class/method/object defs into return value for `imenu--index-alist'."
+      ;;   ;; store into this value to change return
+      ;;   ad-return-value)
+  
+      (ad-activate 'js3-end-of-line)
+      (ad-activate 'js3-beginning-of-line)
+      ;; (ad-activate 'js3-mode-create-imenu-index)
+  
+      (modify-syntax-entry ?_ "w" js3-mode-syntax-table)))
+  
+  ;; (set-default 'js3-indent-level 4)
+  
+  (setq js3-indent-level 4
+        js3-cleanup-whitespace t
+        js3-consistent-level-indent-inner-bracket t
+        js3-enter-indents-newline t
+        js3-highlight-level 3
+        js3-mirror-mode nil
+        js3-missing-semi-one-line-override t
+        js3-rebind-eol-bol-keys t
+        js3-highlight-external-variables t)
+  
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  
+  ;;; pretty print json
+  (defun rk/pretty-json ()
+    (interactive)
+    (when (not (region-active-p))
+      (error "need selection"))
+    (let ((start (min (point) (mark)))
+          (end (max (point) (mark))))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region start end)
+          (goto-char (point-min))
+          ;; line break after first "{"
+          (if (re-search-forward "{\\([^\n]\\)" (point-max) t)
+              (replace-match "{\n\\1" nil nil))
+          ;; line break after every,
+          (while (re-search-forward ",[\s-]*\\([^\n]\\)" (point-max) t)
+            (replace-match ",\n\\1" nil nil))
+          (goto-char (point-max))
+          (if (re-search-backward "\\([^\n]\\)}" (point-min) t)
+              (replace-match "\\1\n}" nil nil))
+          (delete-trailing-whitespace (point-min) (point-max)))
+        (indent-region start end))))
+  
+  (defun rk/remove-line-breaks ()
+    (interactive)
+    (when (not (region-active-p))
+      (error "need selection"))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region (point) (mark))
+        (goto-char (point-min))
+        (while (re-search-forward "\n[\s-]*" (point-max) t)
+          (replace-match "" nil nil)))))
+  
+  
+  (defun rk/convert-js-var-block (start end)
+    (interactive "r")
+    (let ((new-end start))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region start end)
+          (goto-char (point-min))
+          ;; skip the first var
+          (re-search-forward "\\s-*\\(var\\)\\s-+" (point-max) t)
+          ;; replace all preceding vars
+          (while (re-search-forward "\\(;\\)?\\(\\s-*\n\\s-*var\\s-+\\)" (point-max) t)
+            (replace-match ",\n" nil nil))
+          (setq new-end (point-max)))
+        (indent-region start new-end))))
+  
+  (defun rk/toggle-js-whitespace-cleanup ()
+    (interactive)
+    (set-default 'js3-cleanup-whitespace (not js3-cleanup-whitespace))
+    (message (concat "js3-cleanup-whitespace set to " (prin1-to-string js3-cleanup-whitespace))))
+  
+  (defun rk/js-make-pretty-with-uglify (js-source)
+    (let ((temp-file (make-temp-file "ugly-json")))
+      (unwind-protect
+          (with-temp-buffer
+            (insert js-source)
+            (write-file temp-file)
+            (let* ((cmd (concat "uglifyjs --beautify --indent 4 " temp-file))
+                   (result (shell-command-to-string cmd)))
+              (if (string-match "DEBUG: Error" result)
+                  (message "Error running JS beautifier. Is source code valid?")
+                (substring result 1 (- (length result) 2)))))
+        (delete-file temp-file))))
+  
+  (defun rk/js-prettify-and-insert ()
+    (interactive)
+    ;; escape source in "(...);" so that JSON expressions go through
+    (rk/with-active-region-or-line start end
+      (let ((js-source (format "(%s);" (rk/current-region-or-line-string)))
+            deactivate-mark)
+        (kill-region start end)
+        (push-mark nil t t)
+        (insert (rk/js-make-pretty-with-uglify js-source)))))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  
+  ;;; js3 ast helper
+  (defun rk/js3-node-name-at-point ()
+    ""
+    (interactive)
+    (message (js3-node-short-name (js3-node-at-point))))
+  
+  (defun rk/js3-get-func-def-info ()
+    "example: returns '(\"$world\" \"addScript\" \"foo\"
+    \"$world.addScript(fu|nction foo() {});\") from
+    '$world.addScript(fu|nction () {});'"
+    (let* ((current-node (js3-node-at-point))
+           (func-node (if (= js3-FUNCTION (js3-node-type current-node))
+                          current-node
+                        (js3-node-get-enclosing-scope current-node)))
+           (func-parent-node (js3-node-parent func-node))
+            target-node)
+       (when (and func-node func-parent-node (= js3-CALL (js3-node-type func-parent-node)))
+         (setq target-node (js3-call-node-target func-parent-node))
+         (mapcar 'js3-node-string (list
+                                   (js3-prop-get-node-left target-node)
+                                   (js3-prop-get-node-right target-node)
+                                   (js3-function-node-name func-node)
+                                   func-parent-node)))))
+  
+  ;; js3-node-abs-end
+  (defun rk/js3-backward-up ()
+    ""
+    (interactive "")
+    (let ((old-pos (point))
+          (new-pos (js3-node-abs-pos (js3-node-parent (js3-node-at-point)))))
+      (when (= old-pos new-pos)
+          (setq new-pos (js3-node-abs-pos (js3-node-get-enclosing-scope (js3-node-at-point)))))
+      ;; (if this-command-keys-shift-translated (message "fooo"))
+      (goto-char new-pos)))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  ;; (require 'jquery-doc)
+  
+  ;; adds ac-source-jquery to the ac-sources list
+  ;; (remove-hook 'js3-mode-hook 'jquery-doc-setup)
+  ;; (add-hook 'js3-mode-hook 'jquery-doc-setup)
+  
+  ;;; (remove-hook 'js3-mode-hook 'jquery-doc-setup)
+  
+  ;; (eval-after-load "jquery-doc"
+  ;;  '(progn
+  ;;     (dolist (hook '(j3s-mode-hook js2-mode-hook js-mode-hook)) (add-hook hook 'jquery-doc-setup))))
   
 #+END_SRC
 * my own helpers
