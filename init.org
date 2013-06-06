@@ -1134,20 +1134,72 @@ Suppress GUI features
 ** editing commands
 *** lines
 #+BEGIN_SRC emacs-lisp
-(defun rk/open-line-below ()
-  (interactive)
-  (end-of-line)
-  (newline)
-  (indent-for-tab-command))
-
-(defun rk/open-line-above ()
-  (interactive)
-  (beginning-of-line)
-  (newline)
-  (forward-line -1)
-  (indent-for-tab-command))
+  (defun rk/clear-buffer ()
+    (interactive)
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  
+  (defun rk/open-line-below ()
+    (interactive)
+    (end-of-line)
+    (newline)
+    (indent-for-tab-command))
+  
+  (defun rk/open-line-above ()
+    (interactive)
+    (beginning-of-line)
+    (newline)
+    (forward-line -1)
+    (indent-for-tab-command))
 #+END_SRC
 
+** comments
+#+BEGIN_SRC emacs-lisp
+  (defun rk/divider (&optional length suppress-newline)
+    (interactive "p")
+    (message (prin1-to-string length))
+    (when (or (not length) (= length 1)) (setq length 58))
+    (when (< length 6) (setq length 6))
+    (beginning-of-line)
+    (let ((div-start-pos (point)))
+      ;; (set-mark div-start-pos)
+      (delete-horizontal-space)
+      (insert "-")
+      (comment-or-uncomment-region-or-line)
+      (indent-according-to-mode)
+      (end-of-line)
+      (setq length (- length (- (point) div-start-pos)))
+      (insert (apply 'concat (make-list (/ length 2) "=-")))
+      (if suppress-newline
+          (forward-line)
+        (insert "\n"))))
+  
+  (defun rk/comment-box (reg-start reg-end)
+    "my own comment box, using the divider"
+    (interactive "r")
+    (let ((start (if (region-active-p) reg-start (line-beginning-position)))
+          (end (if (region-active-p) reg-end (line-end-position))))
+      (comment-or-uncomment-region-or-line)
+      (indent-according-to-mode)
+      (setq end (line-end-position))
+      (setq max-line-length 0)
+      (unless (region-active-p)
+        (set-mark start) (goto-char end))
+      (rk/do-for-each-line-in-region (lambda (line)
+                                       (setq max-line-length
+                                             (max max-line-length (length line)))
+                                       line) t)
+      (setq max-line-length (+ max-line-length (length (rk/current-line-indent))))
+      (deactivate-mark)
+      (goto-char end)
+      (newline)
+      (rk/divider (1+ max-line-length) t)
+      (goto-char start)
+      (forward-line -1)
+      (end-of-line)
+      (newline)
+      (rk/divider (1+ max-line-length) t)))
+#+END_SRC
 * key setup
 ** window related
 #+BEGIN_SRC emacs-lisp
