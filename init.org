@@ -1042,24 +1042,30 @@ Suppress GUI features
       (add-hook hook 'lisp-setup)))
   
   
-  ;; (define-key emacs-lisp-mode-map (kbd "C-x C-a") 'pp-macroexpand-last-sexp)
+  (define-key emacs-lisp-mode-map (kbd "C-x C-a") 'pp-macroexpand-last-sexp)
   
   ;; ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
-  ;; (defun rk/bounds-of-defun ()
-  ;;   "uses beginning-of-defun and end-of-defun to determine the bounds"
-  ;;   (save-excursion
-  ;;     `(,(progn (beginning-of-defun) (point)) . ,(progn (end-of-defun) (point)))))
+  (defun rk/bounds-of-defun ()
+    "uses beginning-of-defun and end-of-defun to determine the bounds"
+    (save-excursion
+      `(,(progn (beginning-of-defun) (point)) . ,(progn (end-of-defun) (point)))))
   
-  ;; (defun rk/eval-defun-flash ()
-  ;;   (interactive)
-  ;;   (let* ((bounds (rk/bounds-of-defun))
-  ;;          (start (car bounds))
-  ;;          (end (cdr bounds)))
-  ;;     (slime-flash-region start end 0.7)
-  ;;     (eval-region start end t)))
+  (defun rk/flash-region (start end &optional timeout)
+    "Temporarily highlight region from START to END."
+    (let ((overlay (make-overlay start end)))
+      (overlay-put overlay 'face 'secondary-selection)
+      (run-with-timer (or timeout 0.2) nil 'delete-overlay overlay)))
   
-  ;; (define-key emacs-lisp-mode-map (kbd "M-SPC") 'rk/eval-defun-flash)
+  (defun rk/eval-defun-flash ()
+    (interactive)
+    (let* ((bounds (rk/bounds-of-defun))
+           (start (car bounds))
+           (end (cdr bounds)))
+      (rk/flash-region start end 0.7)
+      (eval-region start end t)))
+  
+  (define-key emacs-lisp-mode-map (kbd "M-SPC") 'rk/eval-defun-flash)
 #+END_SRC
 
 **** clojure
@@ -1826,7 +1832,13 @@ Suppress GUI features
   
   (global-set-key (kbd "C-x C-r") 'rk/eval-and-replace-last-sexp)
   
-  (global-set-key (kbd "C-x C-p") 'eval-print-last-sexp)
+  (defun rk/eval-print-last-sexp (arg)
+    (interactive "P")
+    (if arg
+        (pp-eval-last-sexp t)
+        (eval-print-last-sexp)))
+  
+  (global-set-key (kbd "C-x C-p") 'rk/eval-print-last-sexp)
   
   (global-set-key (kbd "C-x p") 'mark-page)
   
