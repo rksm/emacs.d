@@ -5,7 +5,7 @@
 (let* ((init-org-file (concat dotfiles-dir "init.org"))
       (base-name (file-name-sans-extension init-org-file))
       (exported-file (concat base-name "-tangled.el")))
-  (org-babel-tangle-file init-org-file exported-file "emacs-lisp")
+  (org-babel-tangle-file init-org-file exported-file)
   (load-file exported-file)
   (message "Loaded %s" exported-file))
 
