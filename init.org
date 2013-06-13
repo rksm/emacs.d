@@ -28,6 +28,8 @@ ELPA/marmalade repos.
       helm
       wgrep
       magit
+      ;; weby stuff
+      markdown-mode
       ;; js
       js3-mode
       ;; lispy things
