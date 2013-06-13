@@ -673,15 +673,17 @@ Suppress GUI features
   
   (defvar rk/nrepl-key-map (make-keymap) "my nrepl keys")
   
-  (defun rk/nrepl-print-and-mark ()
-    (interactive)
+  (defun rk/nrepl-print-and-mark (arg)
+    (interactive "P")
     (push-mark (point) t t)
-    (nrepl-eval-print-last-expression))
+    (if arg
+        (nrepl-pprint-eval-last-expression)
+        (nrepl-eval-print-last-expression)))
   
   (define-key rk/nrepl-key-map (kbd "C-x C-p") 'rk/nrepl-print-and-mark)
   (define-key rk/nrepl-key-map (kbd "s-p") 'rk/nrepl-print-and-mark)
   (define-key rk/nrepl-key-map (kbd "s-d") 'nrepl-eval-last-expression)
-  (define-key rk/nrepl-key-map (kbd "s-i") 'nrepl-pprint-eval-last-expression)
+  (define-key rk/nrepl-key-map (kbd "s-i") 'nrepl-inspect)
   (define-key rk/nrepl-key-map (kbd "s-I") 'nrepl-src)
   
   (define-minor-mode rk/nrepl-minor-mode
@@ -698,6 +700,19 @@ Suppress GUI features
   (eval-after-load "auto-complete"
     '(add-to-list 'ac-modes 'nrepl-mode))
   (add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "nrepl-inspect"))
+  (require 'nrepl-inspect)
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (require 'nrepl-ritz)
+  (define-key nrepl-interaction-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
+  (define-key nrepl-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
+  (define-key nrepl-interaction-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
+  (define-key nrepl-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
 #+END_SRC
 * version control
 ** magit
