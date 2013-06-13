@@ -2019,6 +2019,61 @@ Suppress GUI features
    "/b"   rk/comment-box
    "/d"   rk/divider)
 #+END_SRC
+* mode mappings
+#+BEGIN_SRC elisp
+  ;; -*-no-byte-compile: t; -*-
+  
+  ;;; clojure
+  (autoload 'clojure-mode "clojure-mode")
+  (add-to-list 'auto-mode-alist '("\\.clj$" . clojure-mode))
+  
+  ;;; git
+  (autoload 'rebase-mode "rebase-mode")
+  (add-to-list 'auto-mode-alist '("git-rebase-todo" . rebase-mode))
+  (add-to-list 'auto-mode-alist '("\\(?:\\.gitconfig\\|\\.gitmodules\\|config\\)$" . conf-mode))
+  
+  ;;; js
+  ;; Need to first remove from list if present, since elpa adds entries too, which
+  ;; may be in an arbitrary order
+  (autoload 'js3-mode "js3-mode")
+  (eval-when-compile (require 'cl))
+  
+  (add-to-list 'interpreter-mode-alist '("node" . js3-mode))
+  (add-to-list 'interpreter-mode-alist '("shjs" . js3-mode))
+  
+  ;;; elisp
+  (add-to-list 'auto-mode-alist '("\\.emacs-project$" . emacs-lisp-mode))
+  
+  ;;; markdown
+  (autoload 'markdown-mode "markdown-mode" "Mode for editing Markdown documents" t)
+  (setq auto-mode-alist
+        (cons '("\\.\\(md\\|markdown\\)$" . markdown-mode) auto-mode-alist))
+  
+  ;;; org
+  (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+  
+  ;;; shell
+  (autoload 'shell-script-mode "shell-script-mode")
+  (add-to-list 'auto-mode-alist '("\\.[a-z]?sh$" . shell-script-mode))
+  
+  ;;; diff
+  (add-to-list 'magic-mode-alist '("\$ git.*diff" . diff-mode))
+  
+  ;;; applescript
+  (autoload 'applescript-mode "applescript-mode"
+    "Major mode for editing AppleScript source." t)
+  (add-to-list 'auto-mode-alist '("\\.applescript$" . applescript-mode))
+  
+  ;;; octave
+  (autoload 'octave-mode "octave-mod" nil t)
+  (add-to-list 'auto-mode-alist '("\\.m$" . octave-mode))
+  
+  (autoload 'arduino-mode "arduino-mode" "Major mode for editing Arduino code." t)
+  (add-to-list 'auto-mode-alist '("\\.\\(pde\\|ino\\)$" . arduino-mode))
+  
+  
+  
+#+END_SRC
 * theming / colors
 ** theme
 #+BEGIN_SRC emacs-lisp
