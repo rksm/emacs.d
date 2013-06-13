@@ -874,12 +874,14 @@ Suppress GUI features
   "The presence of any file/directory in this list indicates a project root.")
   
   (defun rk/find-project-root (&optional root)
-    "Determines the current project root by recursively searching for an indicator."
+    "Determines the current project root by recursively searching
+  for an indicator. If no project indicator is found it will return
+  `default-directory'"
     (when (null root) (setq root default-directory))
     (cond
      ((rk/root-matches root *rk/project-roots*)
       (expand-file-name root))
-     ((equal (expand-file-name root) "/") nil)
+     ((equal (expand-file-name root) "/") default-directory)
      (t (rk/find-project-root (concat (file-name-as-directory root) "..")))))
   
   (defun rk/project-root ()
@@ -908,7 +910,7 @@ Suppress GUI features
   ;;;;;;;;;;;;;;;;
   ;; find files ;;
   ;;;;;;;;;;;;;;;;
-  (defun rk/find-project-files (root)
+  (defun rk/find-project-files (root &optional max-depth)
     "Finds all files in a given 'project'. What a project is, is determined by textmate.
   Contrary to 'textmate-find-project-files' this search uses find and it's prune option to
   not recurse into dirs that should be ignored. The shell command  outputed is sth like
@@ -922,18 +924,41 @@ Suppress GUI features
                              (make-ignore-args rk/find-file-ignores)
                              " \\) \\) -o -type d \\( "
                              (make-ignore-args rk/find-dir-ignores)
-                             " \\) -not -prune | sed 's:"
-                             ,*rk/project-root*
-                             "/::'")) "\n" t)))
+                             " \\) -not -prune "
+                             (if max-depth (concat "-maxdepth " (number-to-string max-depth)) "")
+                             " | sed 's:" *rk/project-root* "/::'")) "\n" t)))
+  
+  ;; (makunbound 'rk/find-project-files-cache)
+  (defvar rk/find-project-files-cache nil
+    "alist holding dir - project file maps")
+  
+  (defvar rk/find-project-files-cache-invalidation-time 60
+    "in secs")
+  
+  (defun rk/find-project-files-cached (root &optional max-depth)
+    ""
+    (let* ((key (expand-file-name root))
+           (cache rk/find-project-files-cache)
+           (entry (assoc key rk/find-project-files-cache)))
+      (or entry
+          (lexical-let* ((entry-lookup (rk/find-project-files root max-depth))
+                         (cache-item `(,key . ,entry-lookup)))
+            (push cache-item rk/find-project-files-cache)
+            (run-with-timer
+             rk/find-project-files-cache-invalidation-time nil
+             (lambda () (setq rk/find-project-files-cache (delete cache-item rk/find-project-files-cache))))
+            entry-lookup))))
   
   (setq
    rk/find-file-ignores '("*#" ".gitignore" "*~" "*.lock" "*.DS_Store" "*elc" "*.xcodeproj" "*.nib" "*.framework" "*.app" "*.pbproj" "*.pbxproj" "*.xcode" "*.xcodeproj" "*.bundle" "*.pyc" "*.elc")
    rk/find-dir-ignores '(".git" ".svn" "vendor" "fixtures" "tmp" "log" "classes" "build" "*_temp"))
   
-  (defun rk/project-files (root)
-    (sort
-      (rk/find-project-files root)
-      '(lambda (a b) (< (length a) (length b)))))
+  (defun rk/project-files (root &optional max-depth)
+    (if root
+        (sort
+         (rk/find-project-files-cached root max-depth)
+         '(lambda (a b) (< (length a) (length b))))
+      nil))
   
 #+END_SRC
 * grep
