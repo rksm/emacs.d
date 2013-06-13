@@ -893,7 +893,7 @@ Suppress GUI features
         (if root
             (setq *rk/project-root* (expand-file-name (concat root "/")))
           (setq *rk/project-root* nil))))
-    ,*rk/project-root*)
+    *rk/project-root*)
   
   ;;; -=-=-=-=-=-=-=-=-=-
   
