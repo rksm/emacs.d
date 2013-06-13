@@ -5,10 +5,14 @@
  ;; If there is more than one, they won't work right.
  '(Man-notify-method (quote pushy))
  '(erc-hide-list (quote ("JOIN" "PART" "QUIT")))
- '(erc-input-line-position -3)
  '(erc-log-channels-directory "~/.erc/log")
+ '(erc-log-insert-log-on-open t)
  '(erc-log-mode t)
+ '(erc-log-write-after-insert t)
+ '(erc-log-write-after-send t)
  '(erc-notifications-mode t)
+ '(erc-save-buffer-on-part t)
+ '(erc-save-queries-on-quit t)
  '(safe-local-variable-values (quote ((js3-indent-level . 2)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
