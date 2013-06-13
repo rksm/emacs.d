@@ -2026,6 +2026,12 @@ DELTA should be a multiple of 10, in the units used by the
 (global-set-key (kbd "C-M--") 'decrease-default-font-height)
 #+END_SRC
 
+* server
+#+BEGIN_SRC elisp
+  (require 'server)
+  (unless (server-running-p)
+    (server-start))
+#+END_SRC
 * custom
 #+BEGIN_SRC emacs-lisp
   (setq custom-file (concat dotfiles-dir "custom.el"))
