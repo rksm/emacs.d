@@ -47,6 +47,7 @@
         org-shiftleft
         org-shiftright
         org-todo
+        org-yank
         paredit-backward-delete
         paredit-backward-up
         paredit-close-round
