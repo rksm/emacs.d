@@ -1878,6 +1878,7 @@ Suppress GUI features
   (defvar l-map (make-keymap)
     "Keymap for local bindings and functions, prefixed by (s-L)")
   (define-key global-map (kbd "s-L") 'L-prefix)
+  (define-key global-map (kbd "C-c l") 'L-prefix)
   (fset 'L-prefix l-map)
   
   (defmacro add-to-l-map (&rest mappings)
