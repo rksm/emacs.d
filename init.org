@@ -110,11 +110,25 @@ ELPA/marmalade repos.
 * useful functions
 ** strings and list processing
 #+BEGIN_SRC emacs-lisp
-(defun rk/string-join (list &optional separator item-converter)
-  (mapconcat (or item-converter 'identity) list (or separator "\n")))
-
 (defun rk/filter (condp lst)
   (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+
+; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(defun my-string-starts-with (start-string string)
+  (when (<= (length start-string) (length string))
+    (string-equal
+     start-string
+     (substring string 0 (length start-string)))))
+
+(defun my-include-list (list element)
+  (let ((item (car list)))
+    (cond
+     ((equal nil item) nil)
+     ((equal element item) t)
+     (t (my-include-list (cdr list) element)))))
+
+(defun rk/string-join (list &optional separator item-converter)
+  (mapconcat (or item-converter 'identity) list (or separator "\n")))
 
 (defun rk/string-match (string regexp index-or-list)
   "match string with regexp and return those matches defined by `index-or-list'"
@@ -124,6 +138,95 @@ ELPA/marmalade repos.
        (if (numberp index-or-list)
            (match-string-no-properties index-or-list string)
          (mapcar (lambda (n) (match-string-no-properties n string)) index-or-list))))))
+
+(defun rk/string-trim (str)
+  "Chomp leading and tailing whitespace from STR."
+  (while (string-match "\\`\n+\\|^\\s-+\\|\\s-+$\\|\n+\\'"
+                       str)
+    (setq str (replace-match "" t t str)))
+  str)
+
+(defun rk/string-replace-all (string match-string replacement)
+  (let ((case-fold-search nil))
+    (while (string-match match-string string)
+      (setq string (replace-match replacement t t string))))
+  string)
+
+(defun rk/current-line-string ()
+  "string with no props"
+  (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+
+(defun rk/current-region-or-line-string ()
+  "string comes with no props"
+  (rk/with-active-region-or-line start end
+    (buffer-substring-no-properties start end)))
+
+(defun rk/current-line-indent ()
+  "returns the indent of the line at point as a string"
+  (let ((line (rk/current-line-string)))
+    (or (rk/string-match line "^[\s]+" 0) "")))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+;;; line iterating/replacement
+(defun rk/do-for-each-line-in-region (func &optional no-insert)
+  "applies func to each line in region"
+  (let* ((start (if (region-active-p) (mark) (buffer-end -1)))
+         (end (if (region-active-p) (point) (buffer-end 1)))
+         (lines (split-string (buffer-substring-no-properties start end) "[\n]+"))
+         (count -1)
+         (with-count (= 2 (length (help-function-arglist func))))
+         (replacement-for-lines (mapcar
+                                 `(lambda (line)
+                                    ,(append '(funcall
+                                               func
+                                               line)
+                                             (when with-count '((setq count (1+ count))))))
+                                 lines)))
+    (progn
+      (unless no-insert
+        (kill-region start end)
+        (insert (my-string-join replacement-for-lines "\n")))
+      replacement-for-lines)))
+
+;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(defun rk/stringify-line (line &optional is-first)
+  (concat
+   (if is-first "\"" "+ \"")
+   (replace-regexp-in-string "\"" "\\\"" line t t)
+   "\\n\""))
+
+(defun rk/unstringify-line (line)
+  (let ((replacements '(;; ("\\\"" . "\"")
+                        ("^\\\(\\s-*\\\)\"\\|\"\\s-*$" . "\\1")    ; remove <"> at line starts
+                        ("\\(\\\\n\\)?\"\\s-+\\+" . "")  ; remove <" +> and <\n" +>
+                        ("\\\\\"" . "\"") ; <\"> --> <">
+                        )))
+    (reduce (lambda (string pair) (replace-regexp-in-string (car pair) (cdr pair) string)) replacements :initial-value line)))
+
+(defun rk/stringify-region (start end)
+  (interactive "r")
+  (if (and start end)
+      (rk/do-for-each-line-in-region (lambda (line i)
+                                       (rk/stringify-line line (= i 0))))))
+
+(defun rk/unstringify-region (start end)
+  (interactive "r")
+  (if (and start end)
+      (rk/do-for-each-line-in-region 'rk/unstringify-line)))
+
+(defun rk/copy-stringified ()
+  "pipe region or buffer through `rk/stringify-region' and put
+the result into the clipboard"
+  (interactive)
+  (rk/with-string-from-active-region-or-whole-buffer string
+    (with-temp-buffer
+      (insert string)
+      (rk/stringify-region (point-min) (point-max))
+      (kill-region (point-min) (point-max)))))
+
+
 #+END_SRC
 ** buffer related
 #+BEGIN_SRC elisp
@@ -139,7 +242,80 @@ ELPA/marmalade repos.
   (defun rk/fringe-widen ()
     (interactive)
     (set-fringe-style nil))
+
+; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(defun rk/split-buffer (buffer-or-name &optional separator)
+  "split the buffer contents using `separator'"
+  (let ((sep (or separator "\n----*\n")))
+    (split-string (with-current-buffer buffer-or-name
+                    (buffer-substring-no-properties (point-min) (point-max))) sep)))
+
+(defun rk/split-buffer-and-do (buffer-or-name do-func &optional separator)
+  (mapc do-func (rk/split-buffer buffer-or-name separator)))
+
+(defun rk/create-file (filename &optional content)
+  "create a buffer from `filename' and immediately save it"
+  (interactive "F")
+  (let ((buf (create-file-buffer filename)))
+    (with-current-buffer buf
+      (progn
+        (setq buffer-file-name filename)
+        (if content
+            (insert content)
+          (set-buffer-modified-p t))
+        (save-buffer)))))
+
+(defun rk/split-buffer-and-save-parts (buffer-or-name filename-func &optional separator)
+  "split the buffer using separator and save each splits in a buffer/file using `filename-func'.
+`filename-func' expects the splitted content as arg"
+  (rk/split-buffer-and-do
+   buffer-or-name
+   (lambda (content) (rk/create-file (funcall filename-func content) content))
+   separator))
 #+END_SRC
+** buffers
+#+BEGIN_SRC emacs-lisp
+;;; http://stackoverflow.com/questions/3669511/the-function-to-show-current-files-full-path-in-mini-buffer
+(defun rk/copy-full-path-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (let ((file-name (file-truename buffer-file-name)))
+      (message file-name)
+      (kill-new file-name))))
+
+(defun rk/copy-buffer-name-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (let ((name (file-name-nondirectory buffer-file-name)))
+      (message name)
+      (kill-new name))))
+#+END_SRC
+
+** editing commands
+*** lines
+#+BEGIN_SRC emacs-lisp
+  (defun rk/clear-buffer ()
+    (interactive)
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  
+  (defun rk/open-line-below ()
+    (interactive)
+    (end-of-line)
+    (newline)
+    (indent-for-tab-command))
+  
+  (defun rk/open-line-above ()
+    (interactive)
+    (beginning-of-line)
+    (newline)
+    (forward-line -1)
+    (indent-for-tab-command))
+#+END_SRC
+
 ** comments
 #+BEGIN_SRC elisp
   ;;; allow-line-as-region-for-function adds an "-or-line" version of
@@ -162,13 +338,212 @@ ELPA/marmalade repos.
          (end-of-line)
          (call-interactively (function ,orig-function))))))
   
-  (defun rk/define-comment-line ()
+  (defun rk/define-line-functions ()
     "Add or-line (un)comment function if not already defined"
     (unless (fboundp 'comment-or-uncomment-region-or-line)
-      (allow-line-as-region-for-function comment-or-uncomment-region)))
+      (allow-line-as-region-for-function comment-or-uncomment-region))
+    (unless (fboundp 'kill-region-or-line)
+      (allow-line-as-region-for-function kill-region)))
   
-  (rk/define-comment-line)
+  (rk/define-line-functions)
+
+; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (defun rk/divider (&optional length suppress-newline)
+    (interactive "p")
+    (message (prin1-to-string length))
+    (when (or (not length) (= length 1)) (setq length 58))
+    (when (< length 6) (setq length 6))
+    (beginning-of-line)
+    (let ((div-start-pos (point)))
+      ;; (set-mark div-start-pos)
+      (delete-horizontal-space)
+      (insert "-")
+      (comment-or-uncomment-region-or-line)
+      (indent-according-to-mode)
+      (end-of-line)
+      (setq length (- length (- (point) div-start-pos)))
+      (insert (apply 'concat (make-list (/ length 2) "=-")))
+      (if suppress-newline
+          (forward-line)
+        (insert "\n"))))
   
+  (defun rk/comment-box (reg-start reg-end)
+    "my own comment box, using the divider"
+    (interactive "r")
+    (let ((start (if (region-active-p) reg-start (line-beginning-position)))
+          (end (if (region-active-p) reg-end (line-end-position))))
+      (comment-or-uncomment-region-or-line)
+      (indent-according-to-mode)
+      (setq end (line-end-position))
+      (setq max-line-length 0)
+      (unless (region-active-p)
+        (set-mark start) (goto-char end))
+      (rk/do-for-each-line-in-region (lambda (line)
+                                       (setq max-line-length
+                                             (max max-line-length (length line)))
+                                       line) t)
+      (setq max-line-length (+ max-line-length (length (rk/current-line-indent))))
+      (deactivate-mark)
+      (goto-char end)
+      (newline)
+      (rk/divider (1+ max-line-length) t)
+      (goto-char start)
+      (forward-line -1)
+      (end-of-line)
+      (newline)
+      (rk/divider (1+ max-line-length) t)))
+#+END_SRC
+** regions
+#+BEGIN_SRC elisp
+(defmacro rk/with-active-region-or-whole-buffer (start end &rest body)
+  "bind `start' and `end' to region start/end or if no region
+active to `point-min' and `point-max'"
+  (declare (indent 2) (debug t))
+  `(let ((,start (if (region-active-p) (region-beginning) (point-min)))
+         (,end (if (region-active-p) (region-end) (point-max))))
+     ,@body))
+
+(defmacro rk/with-active-region-or-line (start end &rest body)
+  "bind `start' and `end' to region start/end or if no region
+active to `point-min' and `point-max'"
+  (declare (indent 2) (debug t))
+  `(let ((,start (if (region-active-p) (region-beginning) (point-at-bol)))
+         (,end (if (region-active-p) (region-end) (point-at-eol))))
+     ,@body))
+
+(defmacro rk/with-string-from-active-region-or-whole-buffer (string-name &rest body)
+  "bind `start' and `end' to region start/end or if no region
+active to `point-min' and `point-max'"
+  (declare (indent 1) (debug t))
+  (let ((start-name (gensym))
+        (end-name (gensym)))
+   `(rk/with-active-region-or-whole-buffer ,start-name ,end-name
+      (let ((,string-name (buffer-substring-no-properties ,start-name ,end-name)))
+        ,@body))))
+
+(defun rk/activate-region (from to)
+  "activate region in specified range and evaluate body"
+  (let (deactivate-mark)
+    (push-mark from t t)
+    (goto-char to)))
+
+; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+(defun rk/set-mark-on-shift-press ()
+  (when (and this-command-keys-shift-translated
+             (not (region-active-p)))
+    (set-mark (point))))
+
+#+END_SRC
+** modes
+#+BEGIN_SRC elisp
+(defmacro rk/link-modes (primary-mode linked-mode &optional negate)
+  "run this makro to enable `linked-mode' whenever `primary-mode' is activated. Use `negate' to get an reversed effect"
+  (let ((advice-name (intern (concat (symbol-name linked-mode) "-link-around"))))
+   `(progn
+      (defadvice ,primary-mode (around ,advice-name (&optional arg))
+        ,(concat (format "Around advice that automatically %s %s when %s is activated "
+                         (if negate "disables" "enables")
+                         (symbol-name linked-mode)
+                         (symbol-name primary-mode)))
+        ad-do-it
+        (if (null ad-return-value)
+            (,linked-mode ,(if negate 1 0))
+          (progn
+            (,linked-mode ,(if negate 0 1))
+            (message "enabling..."))))
+      (ad-activate ',primary-mode))))
+#+END_SRC
+** various
+#+BEGIN_SRC elisp
+  ;;; http://www.emacswiki.org/emacs/InsertDate
+  (defun rk/insert-date (prefix)
+    "Insert the current date. With prefix-argument, use ISO format. With
+     two prefix arguments, write out the day and month name."
+    (interactive "P")
+    (let ((format (cond
+                   ((not prefix) "%A, %d. %B %Y")
+                   ((equal prefix '(4)) "%Y-%m-%d")
+                   ((equal prefix '(16)) "%d.%m.%Y")))
+          (system-time-locale "en_US"))
+      (insert (format-time-string format))))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (defun rk/browse-url-or-current-file ()
+    "either opens the url at point or the current file"
+    (interactive)
+    (browse-url (or (browse-url-url-at-point)
+                    (concat "file://" (file-truename buffer-file-name)))))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (defun rk/insert-name-email ()
+    (interactive)
+    (insert "Robert Krahn <robert.krahn@gmail.com>"))
+#+END_SRC
+** tests
+#+BEGIN_SRC elisp
+(ert-deftest rk/activate-region-test ()
+  (with-temp-buffer
+    (insert "foo\nbar\nbaz")
+    (rk/activate-region 2 6)
+    (should (equal "oo\nb" (buffer-substring-no-properties (region-beginning) (region-end))))))
+
+(ert-deftest rk/current-line-string-test ()
+  (with-temp-buffer
+    (insert "foo bar\nbaz\nzork")
+    (goto-line 2) (forward-char 1)
+    (should (equal "baz" (rk/current-line-string)))))
+
+;; (rk/do-for-each-line-test)
+(ert-deftest rk/do-for-each-line-test ()
+  (with-temp-buffer
+   "--rk-do-for-each-line-test-buffer--"
+   (let (result)
+     ;; start: 1 end: 12 + 1
+     (insert "ha\nll\no\nwelt")
+     (goto-char (+ 12 1))
+
+     (setq result (rk/do-for-each-line-in-region 'identity))
+     (assert (equal '("ha" "ll" "o" "welt") result) t "no lines without setting mark")
+
+     (set-mark 1)
+
+     (setq result (length (rk/do-for-each-line-in-region 'identity)))
+     (assert (equal 4 result) t "line no not correct")
+
+     (setq result (rk/do-for-each-line-in-region (lambda (line) (number-to-string (length line)))))
+     (assert (equal '("2" "2" "1" "4") result) t "length of lines not correct")
+
+     (assert (equal "2\n2\n1\n4" (buffer-string)) t "buffer contents not ok")
+
+     (setq result (rk/do-for-each-line-in-region (lambda (line count) (number-to-string count))))
+     (assert (equal '("0" "1" "2" "3") result) t "call with count not ok"))))
+
+
+(ert-deftest rk/string-match-test ()
+  (let ((string "foo bar baz")
+        (regexp "\\w+ \\(\\w+\\) \\w+"))
+   (assert (equal (rk/string-match string regexp '(1)) '("bar")) t "list return")
+   (assert (equal (rk/string-match string regexp 1) "bar") t "single return")
+   (assert (equal (rk/string-match "foo" "zork" 1) nil) t "no match")))
+
+
+(ert-deftest rk/split-buffer-test ()
+  (rk-test-with-temp-buffer-do
+   "rk-split-buffer-test buffer"
+   (let ((buffer-content "foo\n------\nbar")
+         (create-file-call-n 0))
+     (insert buffer-content)
+     (flet ((rk/create-file (filename content) (progn
+                                                 (setq create-file-call-n (1+ create-file-call-n))
+                                                 (assert (string= filename "baz") t "file name not ok")
+                                                 (assert (string-match "foo\\|bar" content) t (concat "content not ok: " content)))))
+       (rk/split-buffer-and-save-parts "rk-split-buffer-test buffer" (lambda (content) "baz"))
+       (assert (equal 2 create-file-call-n) t "create file not called two times")))))
+
 #+END_SRC
 * org-mode
 
@@ -1176,97 +1551,6 @@ Suppress GUI features
   ;;  '(progn
   ;;     (dolist (hook '(j3s-mode-hook js2-mode-hook js-mode-hook)) (add-hook hook 'jquery-doc-setup))))
   
-#+END_SRC
-* my own helpers
-** buffers
-#+BEGIN_SRC emacs-lisp
-;;; http://stackoverflow.com/questions/3669511/the-function-to-show-current-files-full-path-in-mini-buffer
-(defun rk/copy-full-path-to-kill-ring ()
-  "copy buffer's full path to kill ring"
-  (interactive)
-  (when buffer-file-name
-    (let ((file-name (file-truename buffer-file-name)))
-      (message file-name)
-      (kill-new file-name))))
-
-(defun rk/copy-buffer-name-to-kill-ring ()
-  "copy buffer's full path to kill ring"
-  (interactive)
-  (when buffer-file-name
-    (let ((name (file-name-nondirectory buffer-file-name)))
-      (message name)
-      (kill-new name))))
-#+END_SRC
-
-
-** editing commands
-*** lines
-#+BEGIN_SRC emacs-lisp
-  (defun rk/clear-buffer ()
-    (interactive)
-    (let ((inhibit-read-only t))
-      (erase-buffer)))
-  
-  (defun rk/open-line-below ()
-    (interactive)
-    (end-of-line)
-    (newline)
-    (indent-for-tab-command))
-  
-  (defun rk/open-line-above ()
-    (interactive)
-    (beginning-of-line)
-    (newline)
-    (forward-line -1)
-    (indent-for-tab-command))
-#+END_SRC
-
-** comments
-#+BEGIN_SRC emacs-lisp
-  (defun rk/divider (&optional length suppress-newline)
-    (interactive "p")
-    (message (prin1-to-string length))
-    (when (or (not length) (= length 1)) (setq length 58))
-    (when (< length 6) (setq length 6))
-    (beginning-of-line)
-    (let ((div-start-pos (point)))
-      ;; (set-mark div-start-pos)
-      (delete-horizontal-space)
-      (insert "-")
-      (comment-or-uncomment-region-or-line)
-      (indent-according-to-mode)
-      (end-of-line)
-      (setq length (- length (- (point) div-start-pos)))
-      (insert (apply 'concat (make-list (/ length 2) "=-")))
-      (if suppress-newline
-          (forward-line)
-        (insert "\n"))))
-  
-  (defun rk/comment-box (reg-start reg-end)
-    "my own comment box, using the divider"
-    (interactive "r")
-    (let ((start (if (region-active-p) reg-start (line-beginning-position)))
-          (end (if (region-active-p) reg-end (line-end-position))))
-      (comment-or-uncomment-region-or-line)
-      (indent-according-to-mode)
-      (setq end (line-end-position))
-      (setq max-line-length 0)
-      (unless (region-active-p)
-        (set-mark start) (goto-char end))
-      (rk/do-for-each-line-in-region (lambda (line)
-                                       (setq max-line-length
-                                             (max max-line-length (length line)))
-                                       line) t)
-      (setq max-line-length (+ max-line-length (length (rk/current-line-indent))))
-      (deactivate-mark)
-      (goto-char end)
-      (newline)
-      (rk/divider (1+ max-line-length) t)
-      (goto-char start)
-      (forward-line -1)
-      (end-of-line)
-      (newline)
-      (rk/divider (1+ max-line-length) t)))
 #+END_SRC
 * key setup
 ** window related
