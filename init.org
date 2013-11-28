@@ -15,31 +15,37 @@ ELPA/marmalade repos.
   (add-to-list 'package-archives '("tromey" . "http://tromey.com/elpa/") t)
   (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
   (package-initialize)
-  (package-refresh-contents)
-  
+
   ;; (makunbound 'my-packages)
   (defvar my-packages
-    '(iy-go-to-char
-      ace-jump-mode
-      multiple-cursors
-      expand-region
-      move-text
-      auto-complete
-      helm
-      wgrep
-      magit
-      ;; weby stuff
-      markdown-mode
-      ;; js
-      js3-mode
-      ;; lispy things
-      rainbow-delimiters
-      paredit
-      clojure-mode clojure-test-mode nrepl ac-nrepl nrepl-ritz
-      ;; erc
-      ;; znc ;; bouncer
-      ))
-  
+    '(dash dash-functional
+           iy-go-to-char
+           ace-jump-mode
+           multiple-cursors
+           expand-region
+           move-text
+           auto-complete
+           helm
+           wgrep
+           magit
+           ;; weby stuff
+           markdown-mode
+           ;; js
+           js2-mode
+           js3-mode
+           ;; lispy things
+           rainbow-delimiters
+           paredit
+           clojure-mode clojure-test-mode nrepl ac-nrepl nrepl-ritz
+           ;; erc
+           ;; znc ;; bouncer
+           ;; haskellme
+           haskell-mode
+           ghci-completion
+           ;; flymake-hlint
+           ;; flymake-haskell-multi
+           ))
+
   (dolist (p my-packages)
     (when (not (package-installed-p p))
       (package-install p)))
