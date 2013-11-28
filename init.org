@@ -2086,12 +2086,19 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
   (require 'iy-go-to-char)
-  (global-set-key (kbd "s-.") 'iy-go-to-char)
-  (global-set-key (kbd "C-c .") 'iy-go-to-char)
+  (eval-after-load "multiple-cursors"
+    '(progn (add-to-list 'mc/cursor-specific-vars 'iy-go-to-char-start-pos)))
+  (global-set-key (kbd "s-.") 'iy-go-up-to-char)
+  ;; (global-set-key (kbd "C-c .") 'iy-go-to-char)
   (global-set-key (kbd "s-,") 'iy-go-to-char-backward)
-  (global-set-key (kbd "C-c ,") 'iy-go-to-char-backward)
-  (setq iy-go-to-char-key-forward nil
-        iy-go-to-char-key-backward nil)
+  ;; (global-set-key (kbd "C-c ,") 'iy-go-to-char-backward)
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; (global-set-key (kbd "s-.") nil)
+  ;; (global-set-key (kbd "s-,") nil)
+  
+  ;; (setq iy-go-to-char-start-pos nil)
+  ;; (setq iy-go-to-char-key-forward 59
+  ;;       iy-go-to-char-key-backward 44)
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
@@ -2182,46 +2189,40 @@ Suppress GUI features
 #+END_SRC
 ** CMD keys
 #+BEGIN_SRC emacs-lisp
-  (eval-after-load "helm-config"
-    '(progn
-       (global-set-key (kbd "s-a") 'rk/helm-buffers-and-files)
-       (global-set-key (kbd "M-x") 'helm-M-x)
-       (global-set-key (kbd "s-k") 'rk/clear-buffer)
-       (global-set-key (kbd "s-E") 'rk/helm-ac-completion)
-       (global-set-key (kbd "s-S") 'helm-google-suggest)
-       (global-set-key (kbd "s-R") 'helm-resume)
-       (global-set-key (kbd "s-T") 'helm-find)
-       (global-set-key (kbd "s-t") 'rk/helm-symbols)
-       (global-set-key (kbd "s-g") (lambda (arg) (interactive "P") (rk/helm-symbols '(4))))
-       (global-set-key (kbd "s-G") 'rk/helm-symbols)
-       (global-set-key (kbd "s-/") 'comment-or-uncomment-region-or-line)
-       (global-set-key (kbd "s-x") 'kill-region-or-line)
-  
-       ;; currently helm-yasnippet seems to be broken... :(
-       ;; (require 'helm-c-yasnippet)
-       ;; (global-set-key (kbd "s-C") 'helm-c-yas-complete)
-       ;; (require 'yasnippet)
-       ;; (global-set-key (kbd "s-C") 'yas/insert-snippet)
-       ))
+    (eval-after-load "helm-config"
+      '(progn
+         (global-set-key (kbd "s-a") 'rk/helm-buffers-and-files)
+  ;       (global-set-key (kbd "s-a") helm-find-filehelm-find-files)
+         (global-set-key (kbd "M-x") 'helm-M-x)
+         (global-set-key (kbd "s-k") 'rk/clear-buffer)
+         (global-set-key (kbd "s-E") 'rk/helm-ac-completion)
+         (global-set-key (kbd "s-S") 'helm-google-suggest)
+         (global-set-key (kbd "s-R") 'helm-resume)
+         (global-set-key (kbd "s-T") 'helm-find)
+         (global-set-key (kbd "s-t") 'rk/helm-symbols)
+         (global-set-key (kbd "s-g") (lambda (arg) (interactive "P") (rk/helm-symbols '(4))))
+         (global-set-key (kbd "s-G") 'rk/helm-symbols)
+         (global-set-key (kbd "s-/") 'comment-or-uncomment-region-or-line)
+         (global-set-key (kbd "s-x") 'kill-region-or-line)))
 #+END_SRC
 ** CMD-Shift-L map
 #+BEGIN_SRC emacs-lisp
   (global-unset-key (kbd "s-L"))
   (if (boundp '*textmate-mode-map*)
       (define-key *textmate-mode-map* (kbd "s-L") nil))
-  
+
   (defvar l-map (make-keymap)
     "Keymap for local bindings and functions, prefixed by (s-L)")
   (define-key global-map (kbd "s-L") 'L-prefix)
   (define-key global-map (kbd "C-c l") 'L-prefix)
   (fset 'L-prefix l-map)
-  
+
   (defmacro add-to-l-map (&rest mappings)
     `(loop for (keys func)
            on ',mappings
            by 'cddr
            do (define-key l-map keys func)))
-  
+
   (add-to-l-map
    "bb"   helm-buffers+
    "bc"   clone-buffer
