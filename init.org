@@ -1919,7 +1919,7 @@ Suppress GUI features
 ** for helm
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "C-x b") 'rk/helm-buffers-and-files)
-  
+
   (define-key helm-command-map (kbd "i") 'rk/helm-symbols)
   (define-key helm-command-map (kbd "b") 'rk/helm-buffers-and-files)
   (define-key helm-command-map (kbd "g") 'helm-do-grep)
@@ -1999,6 +1999,19 @@ Suppress GUI features
   
   (global-set-key (kbd "C-c j") 'join-line)
   (global-set-key (kbd "C-c J") (lambda () (interactive) (join-line 1)))
+  
+  (defun rk/newline-above ()
+    ""
+    (interactive)
+    (move-beginning-of-line 1)
+    (open-line 1))
+  (defun rk/newline-below ()
+    ""
+    (interactive)
+    (move-end-of-line nil)
+    (newline-and-indent))
+  (global-set-key (kbd "<S-return>") 'rk/newline-above)
+  (global-set-key (kbd "<s-return>") 'rk/newline-below)
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; duplicate line
