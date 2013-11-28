@@ -10,10 +10,10 @@
  '(erc-log-mode t)
  '(erc-log-write-after-insert t)
  '(erc-log-write-after-send t)
- '(erc-notifications-mode t)
+ '(erc-notifications-mode t t)
  '(erc-save-buffer-on-part t)
  '(erc-save-queries-on-quit t)
- '(safe-local-variable-values (quote ((js3-indent-level . 2)))))
+  '(safe-local-variable-values (quote ((Base . 10) (Syntax . ANSI-Common-Lisp) (Package . CYC) (outline-minor-mode) (whitespace-style face tabs spaces trailing lines space-before-tab::space newline indentation::space empty space-after-tab::space space-mark tab-mark newline-mark)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
