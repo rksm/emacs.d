@@ -78,6 +78,7 @@
         whole-line-or-region-yank
         yaml-electric-dash-and-dot
         yank-rectangle
+        yas-expand
         yas/expand
         ))
 
