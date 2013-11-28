@@ -65,52 +65,62 @@ ELPA/marmalade repos.
 
 ** emacs interaction
 #+BEGIN_SRC emacs-lisp
-   (fset 'yes-or-no-p 'y-or-n-p)
-   (column-number-mode 1)
-   (setq-default blink-cursor-delay 0
-                 blink-cursor-interval 0.5
-                 mouse-highlight nil
-                 bookmark-default-file "~/.emacs.d/.bookmarks.el"
-                 buffers-menu-max-size 30
-                 case-fold-search t
-                 compilation-scroll-output t
-                 ediff-split-window-function 'split-window-horizontally
-                 ediff-window-setup-function 'ediff-setup-windows-plain
-                 grep-highlight-matches t
-                 grep-scroll-output nil
-                 indent-tabs-mode nil
-                 tab-width 4
-                 line-spacing 0.2
-                 set-mark-command-repeat-pop t
-                 show-trailing-whitespace t
-                 tooltip-delay 1.5
-                 truncate-lines nil
-                 truncate-partial-width-windows nil
-                 visible-bell t
-                 fill-column 80
-                 ;; backups
-                 make-backup-files t
-                 backup-directory-alist '(("." . "~/.emacs.d/backups"))
-                 kept-new-versions 6
-                 kept-old-versions 2
-                 version-control t
-                 ;; autosave
-                 auto-save-file-name-transforms `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
-                                                  (".*" "~/.emacs.d/backups" t))
-                 ;; lock files
-                 create-lockfiles nil)
-  
-   (transient-mark-mode t)
-   (delete-selection-mode t)
-   ;; (cua-selection-mode t)
-  
-  (show-paren-mode 1)
-  (electric-pair-mode 1)
-  
-   ;; remember cursor pos
-   (setq save-place t)
-   (require 'saveplace)
-   (setq save-place-file "~/.emacs.d/saved-places")
+     (fset 'yes-or-no-p 'y-or-n-p)
+     (column-number-mode 1)
+     (setq-default blink-cursor-delay 0
+                   blink-cursor-interval 0.5
+                   mouse-highlight nil
+                   bookmark-default-file "~/.emacs.d/.bookmarks.el"
+                   buffers-menu-max-size 30
+                   case-fold-search t
+                   compilation-scroll-output t
+                   ediff-split-window-function 'split-window-horizontally
+                   ediff-window-setup-function 'ediff-setup-windows-plain
+                   grep-highlight-matches t
+                   grep-scroll-output nil
+                   indent-tabs-mode nil
+                   tab-width 4
+                   line-spacing 0.2
+                   set-mark-command-repeat-pop t
+                   show-trailing-whitespace t
+                   tooltip-delay 1.5
+                   truncate-lines nil
+                   truncate-partial-width-windows nil
+                   visible-bell t
+                   fill-column 80
+                   ;; backups
+                   make-backup-files t
+                   backup-directory-alist '(("." . "~/.emacs.d/backups"))
+                   kept-new-versions 6
+                   kept-old-versions 2
+                   version-control t
+                   delete-old-versions t
+                   ;; autosave
+                   auto-save-file-name-transforms `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
+                                                    (".*" "~/.emacs.d/backups" t))
+                   ;; lock files
+                   create-lockfiles nil)
+
+     (transient-mark-mode t)
+     (delete-selection-mode t)
+     ;; (cua-selection-mode t)
+
+    (show-paren-mode 1)
+    (electric-pair-mode 1)
+
+     ;; remember cursor pos
+     (setq save-place t)
+     (require 'saveplace)
+     (setq save-place-file "~/.emacs.d/saved-places")
+#+END_SRC
+
+** snippets
+#+BEGIN_SRC elisp
+  (require 'yasnippet)
+  (yas-global-mode)
+  (setq yas-prompt-functions '(yas-completing-prompt yas-ido-prompt yas-no-prompt))
+  (setq yas-indent-line 'fixed)
+  (global-set-key (kbd "s-C") 'yas-insert-snippet)
 #+END_SRC
 
 * useful functions
@@ -244,7 +254,7 @@ the result into the clipboard"
           (required-fringe-width (- (frame-pixel-width) target-frame-width)))
       (unless (< (frame-pixel-width) target-frame-width)
         (set-fringe-style (floor required-fringe-width 2)))))
-  
+
   (defun rk/fringe-widen ()
     (interactive)
     (set-fringe-style nil))
@@ -307,13 +317,13 @@ the result into the clipboard"
     (interactive)
     (let ((inhibit-read-only t))
       (erase-buffer)))
-  
+
   (defun rk/open-line-below ()
     (interactive)
     (end-of-line)
     (newline)
     (indent-for-tab-command))
-  
+
   (defun rk/open-line-above ()
     (interactive)
     (beginning-of-line)
@@ -328,7 +338,7 @@ the result into the clipboard"
   ;;; the given comment function which (un)comments the current line is
   ;;; the mark is not active.  This code comes from Aquamac's osxkeys.el
   ;;; and is licensed under the GPL
-  
+
   (defmacro allow-line-as-region-for-function (orig-function)
   `(defun ,(intern (concat (symbol-name orig-function) "-or-line"))
      ()
@@ -343,14 +353,14 @@ the result into the clipboard"
          (set-mark (point))
          (end-of-line)
          (call-interactively (function ,orig-function))))))
-  
+
   (defun rk/define-line-functions ()
     "Add or-line (un)comment function if not already defined"
     (unless (fboundp 'comment-or-uncomment-region-or-line)
       (allow-line-as-region-for-function comment-or-uncomment-region))
     (unless (fboundp 'kill-region-or-line)
       (allow-line-as-region-for-function kill-region)))
-  
+
   (rk/define-line-functions)
 
 ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -373,7 +383,7 @@ the result into the clipboard"
       (if suppress-newline
           (forward-line)
         (insert "\n"))))
-  
+
   (defun rk/comment-box (reg-start reg-end)
     "my own comment box, using the divider"
     (interactive "r")
@@ -474,17 +484,17 @@ active to `point-min' and `point-max'"
                    ((equal prefix '(16)) "%d.%m.%Y")))
           (system-time-locale "en_US"))
       (insert (format-time-string format))))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/browse-url-or-current-file ()
     "either opens the url at point or the current file"
     (interactive)
     (browse-url (or (browse-url-url-at-point)
                     (concat "file://" (file-truename buffer-file-name)))))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/insert-name-email ()
     (interactive)
     (insert "Robert Krahn <robert.krahn@gmail.com>"))
@@ -603,7 +613,7 @@ active to `point-min' and `point-max'"
                                 (lambda (line) (rk/string-match line "\\([^=]+\\)=\\(.*\\)" '(1 2)))
                                 lines))))
            (mapcar (lambda (var-value) `(setenv ,@var-value)) vars-and-vals))))
-  
+
   (when (and *is-a-mac* window-system)
     (rk/set-env-from-system-shell
      "PATH" "MANPATH"
@@ -612,15 +622,15 @@ active to `point-min' and `point-max'"
      "PLAYERPATH" "STAGEPATH" "ROS_OS_OVERRIDE"
      "ARDUINO_DIR" "ARDMK_DIR"
      "NOTES" "LIVELY" "WEBWERKSTATT"))
-  
+
   (setq exec-path (split-string (getenv "PATH") path-separator))
   (setenv "PAGER" "/bin/cat")
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   ;;; eshell
   (setq eshell-buffer-shorthand t)
-  
+
   ;;; tramp
   (setq tramp-default-user-alist '(("\\`smb\\'" nil nil)
                                    ("\\`\\(?:fcp\\|krlogin\\|r\\(?:cp\\|emcp\\|sh\\)\\|telnet\\)\\'" nil "robert")
@@ -628,13 +638,13 @@ active to `point-min' and `point-max'"
                                    ("\\`\\(?:socks\\|tunnel\\)\\'" nil "robert")
                                    ("\\`synce\\'" nil nil)
                                    ("\\`ssh\\'" "nil" "robert")))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/shell-exec-and-replace-lines ()
     (interactive)
     (rk/do-for-each-line-in-region 'shell-command-to-string))
-  
+
   (defun rk/shell-exec-expression (&optional print-it)
     (interactive "p")
     (let* ((start (if (region-active-p) (mark) (line-beginning-position)))
@@ -647,32 +657,32 @@ active to `point-min' and `point-max'"
             (push-mark nil nil t)
             (insert result))
         (slime-flash-region start end 0.7))))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   ;;; eshell
-  
+
   (defun eshell/edit (file)
     (find-file file))
-  
-  
+
+
   (defun eshell/ll (&rest ARGS)
     (eshell/ls (cons "-l" ARGS)))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (custom-set-variables
    '(Man-notify-method (quote pushy)))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   ;;; doesn't really belong here
   (set-default 'comint-scroll-to-bottom-on-input t)
   (set-default 'comint-scroll-to-bottom-on-output t)
   (set-default 'comint-move-point-for-output t)
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/visit-term-buffer ()
     "Create or visit a terminal buffer."
     (interactive)
@@ -680,11 +690,11 @@ active to `point-min' and `point-max'"
         (progn
           (ansi-term (getenv "SHELL")))
       (switch-to-buffer "*ansi-term*")))
-  
+
   (add-hook 'term-mode-hook (lambda () (setq show-trailing-whitespace nil)))
   ;; (add-hook 'term-mode-hook (lambda () (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)))
   ;; (remove-hook 'term-mode-hook (car term-mode-hook))
-  
+
 #+END_SRC
 * misc
 ** windows
@@ -855,11 +865,11 @@ Suppress GUI features
 ** find stuff
 #+BEGIN_SRC emacs-lisp
   ;;; adapted from textmate.el
-  
+
   ;;;;;;;;;;;;
   ;; helper ;;
   ;;;;;;;;;;;;
-  
+
   ;; http://snipplr.com/view/18683/stringreplace/
   (defun rk/string-replace (this withthat in)
     "replace THIS with WITHTHAT' in the string IN"
@@ -869,16 +879,16 @@ Suppress GUI features
       (while (search-forward this nil t)
         (replace-match withthat nil t))
       (buffer-substring (point-min) (point-max))))
-  
+
   ;;;;;;;;;;;;;;;;;;
   ;; project root ;;
   ;;;;;;;;;;;;;;;;;;
   (defvar *rk/project-root* nil
     "Used internally to cache the project root.")
-  
+
   (defvar *rk/project-roots* '(".git" ".hg" "Rakefile" "Makefile" "README" "README.md" "build.xml" ".emacs-project")
   "The presence of any file/directory in this list indicates a project root.")
-  
+
   (defun rk/find-project-root (&optional root)
     "Determines the current project root by recursively searching
   for an indicator. If no project indicator is found it will return
@@ -889,7 +899,7 @@ Suppress GUI features
       (expand-file-name root))
      ((equal (expand-file-name root) "/") default-directory)
      (t (rk/find-project-root (concat (file-name-as-directory root) "..")))))
-  
+
   (defun rk/project-root ()
     "Returns the current project root."
     (when (or
@@ -900,19 +910,19 @@ Suppress GUI features
             (setq *rk/project-root* (expand-file-name (concat root "/")))
           (setq *rk/project-root* nil))))
     *rk/project-root*)
-  
+
   ;;; -=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/root-match(root names)
     (member (car names) (directory-files root)))
-  
+
   (defun rk/root-matches(root names)
     (if (rk/root-match root names)
         (rk/root-match root names)
         (if (eq (length (cdr names)) 0)
             'nil
             (rk/root-matches root (cdr names)))))
-  
+
   ;;;;;;;;;;;;;;;;
   ;; find files ;;
   ;;;;;;;;;;;;;;;;
@@ -933,14 +943,14 @@ Suppress GUI features
                              " \\) -not -prune "
                              (if max-depth (concat "-maxdepth " (number-to-string max-depth)) "")
                              " | sed 's:" *rk/project-root* "/::'")) "\n" t)))
-  
+
   ;; (makunbound 'rk/find-project-files-cache)
   (defvar rk/find-project-files-cache nil
     "alist holding dir - project file maps")
-  
+
   (defvar rk/find-project-files-cache-invalidation-time 60
     "in secs")
-  
+
   (defun rk/find-project-files-cached (root &optional max-depth)
     ""
     (let* ((key (expand-file-name root))
@@ -954,18 +964,18 @@ Suppress GUI features
              rk/find-project-files-cache-invalidation-time nil
              (lambda () (setq rk/find-project-files-cache (delete cache-item rk/find-project-files-cache))))
             entry-lookup))))
-  
+
   (setq
    rk/find-file-ignores '("*#" ".gitignore" "*~" "*.lock" "*.DS_Store" "*elc" "*.xcodeproj" "*.nib" "*.framework" "*.app" "*.pbproj" "*.pbxproj" "*.xcode" "*.xcodeproj" "*.bundle" "*.pyc" "*.elc")
    rk/find-dir-ignores '(".git" ".svn" "vendor" "fixtures" "tmp" "log" "classes" "build" "*_temp"))
-  
+
   (defun rk/project-files (root &optional max-depth)
     (if root
         (sort
          (rk/find-project-files-cached root max-depth)
          '(lambda (a b) (< (length a) (length b))))
       nil))
-  
+
 #+END_SRC
 * grep
 #+BEGIN_SRC emacs-lisp
@@ -990,54 +1000,54 @@ Suppress GUI features
 **** general lispy stuff
 #+BEGIN_SRC emacs-lisp
   (autoload 'enable-paredit-mode "paredit")
-  
+
   (defun maybe-map-paredit-newline ()
     (unless (or (eq major-mode 'inferior-emacs-lisp-mode) (minibufferp))
       (local-set-key (kbd "RET") 'paredit-newline)))
-  
+
   (add-hook 'paredit-mode-hook 'maybe-map-paredit-newline)
-  
+
   (eval-after-load 'paredit
     '(progn
        ;; These are handy everywhere, not just in lisp modes
        (global-set-key (kbd "M-(") 'paredit-wrap-round)
        (global-set-key (kbd "M-[") 'paredit-wrap-square)
        (global-set-key (kbd "M-{") 'paredit-wrap-curly)
-  
+
        (global-set-key (kbd "M-)") 'paredit-close-round-and-newline)
        (global-set-key (kbd "M-]") 'paredit-close-square-and-newline)
        (global-set-key (kbd "M-}") 'paredit-close-curly-and-newline)
-  
+
        (dolist (binding (list (kbd "C-<left>") (kbd "C-<right>")
                               (kbd "C-M-<left>") (kbd "C-M-<right>")))
          (define-key paredit-mode-map binding nil))
-  
+
        ;; Disable kill-sentence, which is easily confused with the kill-sexp
        ;; binding, but doesn't preserve sexp structure
        (define-key paredit-mode-map [remap kill-sentence] nil)
        (define-key paredit-mode-map [remap backward-kill-sentence] nil)))
-  
-  
+
+
   ;; Compatibility with other modes
-  
+
   (add-hook 'minibuffer-setup-hook 'conditionally-enable-paredit-mode)
-  
+
   (defvar paredit-minibuffer-commands '(eval-expression
                                         pp-eval-expression
                                         eval-expression-with-eldoc)
     "Interactive commands for which paredit should be enabled in the minibuffer.")
-  
+
   (defun conditionally-enable-paredit-mode ()
     "Enable paredit during lisp-related minibuffer commands."
     (if (memq this-command paredit-minibuffer-commands)
         (enable-paredit-mode)))
-  
+
   (defun lisp-setup ()
     "Enable features useful in any Lisp mode."
     (enable-paredit-mode)
     (rainbow-delimiters-mode)
     (turn-on-eldoc-mode))
-  
+
   (let* ((lispy-hooks '(emacs-lisp-mode-hook
                         ielm-mode-hook
                         lisp-mode-hook
@@ -1046,23 +1056,23 @@ Suppress GUI features
                         clojure-mode-hook)))
     (dolist (hook lispy-hooks)
       (add-hook hook 'lisp-setup)))
-  
-  
+
+
   (define-key emacs-lisp-mode-map (kbd "C-x C-a") 'pp-macroexpand-last-sexp)
-  
+
   ;; ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (defun rk/bounds-of-defun ()
     "uses beginning-of-defun and end-of-defun to determine the bounds"
     (save-excursion
       `(,(progn (beginning-of-defun) (point)) . ,(progn (end-of-defun) (point)))))
-  
+
   (defun rk/flash-region (start end &optional timeout)
     "Temporarily highlight region from START to END."
     (let ((overlay (make-overlay start end)))
       (overlay-put overlay 'face 'secondary-selection)
       (run-with-timer (or timeout 0.2) nil 'delete-overlay overlay)))
-  
+
   (defun rk/eval-defun-flash ()
     (interactive)
     (let* ((bounds (rk/bounds-of-defun))
@@ -1070,7 +1080,7 @@ Suppress GUI features
            (end (cdr bounds)))
       (rk/flash-region start end 0.7)
       (eval-region start end t)))
-  
+
   (define-key emacs-lisp-mode-map (kbd "M-SPC") 'rk/eval-defun-flash)
 #+END_SRC
 
@@ -1080,51 +1090,56 @@ Suppress GUI features
   (setq nrepl-hide-special-buffers t)
   (setq nrepl-popup-stacktraces-in-repl t)
   (setq nrepl-history-file "~/.emacs.d/nrepl-history")
-  
+
   ;;; my nrepl keys
-  
+
   (defvar rk/nrepl-key-map (make-keymap) "my nrepl keys")
-  
+
   (defun rk/nrepl-print-and-mark (arg)
     (interactive "P")
     (push-mark (point) t t)
     (if arg
         (nrepl-pprint-eval-last-expression)
         (nrepl-eval-print-last-expression)))
-  
+
   (define-key rk/nrepl-key-map (kbd "C-x C-p") 'rk/nrepl-print-and-mark)
   (define-key rk/nrepl-key-map (kbd "s-p") 'rk/nrepl-print-and-mark)
   (define-key rk/nrepl-key-map (kbd "s-d") 'nrepl-eval-last-expression)
   (define-key rk/nrepl-key-map (kbd "s-i") 'nrepl-inspect)
   (define-key rk/nrepl-key-map (kbd "s-I") 'nrepl-src)
-  
+
   (define-minor-mode rk/nrepl-minor-mode
     "A minor mode so that my key settings override annoying major modes."
     nil " rknREPL" rk/nrepl-key-map)
-  
+
   (defun rk/turn-on-nrepl-minor-mode () (rk/nrepl-minor-mode 1))
-  
+
   (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
   (add-hook 'nrepl-interaction-mode-hook 'rk/turn-on-nrepl-minor-mode t t)
-  
+
   ;;; auto-complete
   (require 'ac-nrepl)
   (eval-after-load "auto-complete"
     '(add-to-list 'ac-modes 'nrepl-mode))
   (add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "nrepl-inspect"))
   (require 'nrepl-inspect)
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
+
   (require 'nrepl-ritz)
   (define-key nrepl-interaction-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
   (define-key nrepl-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
   (define-key nrepl-interaction-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
   (define-key nrepl-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
+
+  (define-key nrepl-interaction-mode-map (kbd "M-SPC") 'nrepl-ritz-compile-expression)
+  (define-key nrepl-mode-map (kbd "M-SPC") 'nrepl-ritz-compile-expression)
+  (define-key nrepl-mode-map (kbd "s-k") 'nrepl-clear-output)
+
 #+END_SRC
 * version control
 ** magit
@@ -1134,12 +1149,12 @@ Suppress GUI features
         magit-completing-read-function 'magit-ido-completing-read
         magit-log-auto-more t
         magit-log-cutoff-length 300)
-  
+
   (defun magit-status-somedir ()
     (interactive)
     (let ((current-prefix-arg t))
       (magit-status default-directory)))
-  
+
   (define-key vc-prefix-map (kbd "SPC") 'magit-status-somedir)
 #+END_SRC
 * helm
@@ -1148,12 +1163,12 @@ Suppress GUI features
   (require 'helm-config)
   (require 'helm-imenu)
   (helm-mode 1)
-  
+
   (setq helm-candidate-number-limit nil
         helm-samewindow nil ;; already covered by my window init
         helm-c-use-adaptative-sorting t
         enable-recursive-minibuffers t)
-  
+
   (defun rk/helm-symbols (arg)
     (interactive "P")
     ;; see `helm-occur'
@@ -1173,21 +1188,21 @@ Suppress GUI features
             :sources '(helm-c-source-imenu
                        helm-c-source-occur)
             :buffer "*helm symbols*")))
-  
+
   (defvar rk/helm-c-source-projectf
     '((name . "Project files")
       (disable-shortcuts) ;; Needed for filenames with capitals letters.
       (candidates . (lambda () (with-helm-current-buffer
                             (let ((dir (rk/project-root)))
-                              (mapcar (lambda (ea) (concat dir ea)) (rk/project-files dir))))))
+                              (mapcar (lambda (ea) (concat dir ea)) (rk/project-files dir 3))))))
       (type . file))
     "Uses `rk/project-files' as input.")
-  
+
   (defun rk/helm-projectf ()
     (interactive)
     (helm :sources 'rk/helm-c-source-projectf
           :buffer "*helm project files*"))
-  
+
   (defun rk/helm-buffers-and-files ()
     (interactive)
     (helm
@@ -1197,7 +1212,7 @@ Suppress GUI features
                 rk/helm-c-source-projectf
                 helm-c-source-recentf
                 helm-c-source-bookmarks)))
-  
+
 #+END_SRC
 ** auto-complete
 #+BEGIN_SRC emacs-lisp
@@ -1211,10 +1226,11 @@ Suppress GUI features
                   (ac-abort))))
       (candidates . (lambda () (helm-attr 'ac-candidates)))
       (action . (lambda (partial) (insert-and-inherit partial
+
                               ;; fixme not only usable for js...
-                              ;; (substring partial (length (rk/ac-slime-js-prefix-string))) 
+                              ;; (substring partial (length (rk/ac-slime-js-prefix-string)))
                               )))))
-  
+
   (defun rk/helm-ac-completion ()
     (interactive)
     (helm
@@ -1224,7 +1240,7 @@ Suppress GUI features
 * auto-complete
 #+BEGIN_SRC emacs-lisp
   ;; -*-no-byte-compile: t; -*-
-  
+
   (require 'auto-complete)
   (require 'auto-complete-config)
   (global-auto-complete-mode t)
@@ -1234,60 +1250,79 @@ Suppress GUI features
   (setq ac-use-fuzzy t)
   (define-key ac-completing-map (kbd "C-n") 'ac-next)
   (define-key ac-completing-map (kbd "C-p") 'ac-previous)
-  
+
   ;;----------------------------------------------------------------------------
   ;; Use Emacs' built-in TAB completion hooks to trigger AC (Emacs >= 23.2)
   ;;----------------------------------------------------------------------------
   (setq tab-always-indent t)  ;; use 'complete when auto-complete is disabled
   (add-to-list 'completion-styles 'initials t)
-  
+
   ;; hook AC into completion-at-point
   (defun set-auto-complete-as-completion-at-point-function ()
     (setq completion-at-point-functions '(auto-complete)))
   (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
-  
-  
+
+
   (set-default 'ac-sources
                '(ac-source-dictionary
                  ac-source-words-in-buffer
                  ac-source-words-in-same-mode-buffers
                  ac-source-words-in-all-buffer))
-  
+
   (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
                   sass-mode yaml-mode csv-mode espresso-mode haskell-mode
                   html-mode sh-mode clojure-mode
                   lisp-mode textile-mode markdown-mode tuareg-mode
-                  js3-mode css-mode less-css-mode
+                  js2-mode js3-mode css-mode less-css-mode
                   octave-mode))
     (add-to-list 'ac-modes mode))
-  
-  
+
+
   ;; Exclude very large buffers from dabbrev
   (defun sanityinc/dabbrev-friend-buffer (other-buffer)
     (< (buffer-size other-buffer) (* 1 1024 1024)))
-  
+
   (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
-  
+
 #+END_SRC
+* flycheck
+#+BEGIN_SRC elisp
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+
+  (defun rk/flycheck-display-error-messages (errors)
+    ;; (message "test")
+    (-when-let (messages (-keep #'flycheck-error-message errors))
+      (when (flycheck-may-use-echo-area-p)
+        ;; (display-message-or-buffer (s-join "\n\n" messages)
+        ;;                            flycheck-error-message-buffer)
+        (display-message-or-buffer (s-join "\n\n" messages)
+                                   flycheck-error-message-buffer t))))
+
+  (eval-after-load 'flycheck
+    '(progn
+       (setq flycheck-checkers (delq 'emacs-lisp-checkdoc flycheck-checkers))
+       (setq flycheck-display-errors-function 'rk/flycheck-display-error-messages)))
+#+END_SRC
+
 * social
 ** erc
 #+BEGIN_SRC elisp
   (require 'erc)
-  
+
   (setq erc-hide-list '("JOIN" "PART" "QUIT")
         erc-nick "rksm"
         erc-notifications-mode t
         erc-input-line-position -3)
-  
+
   (erc-autojoin-mode t)
   (setq erc-autojoin-channels-alist
     '((".*\\.freenode.net" "#emacs" "#Node.js" "#clojure" "#ace")))
-  
+
   (defun rk/erc-make-frame ()
     (interactive)
     (make-frame)
     (rk/erc-setup-windows))
-  
+
   (defun rk/erc-setup-windows ()
     (interactive)
     (let ((erc-buffers (butlast (erc-buffer-list) 1)))
@@ -1297,7 +1332,7 @@ Suppress GUI features
       ;; assign erc buffers to new windows
       (loop for win being the windows for buf in erc-buffers do (set-window-buffer win buf))
       (balance-windows)))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; znc
   ;;; /server robert.krahn.org 6666 rksm:<pass>
@@ -1305,14 +1340,14 @@ Suppress GUI features
   (require 'znc)
   (setq znc-servers
         '(("robertkrahn.org" 6666 nil ((network-slug "rksm" "tebor1")))))
-  
+
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; growl
-  
+
   (defvar growlnotify-command (executable-find "growlnotify") "The path to growlnotify")
-  
+
   (when growlnotify-command
-  
+
     (defun growl (title message)
       "Shows a message through the growl notification system using
    `growlnotify-command` as the program."
@@ -1326,17 +1361,265 @@ Suppress GUI features
           (process-send-string process "\n")
           (process-send-eof process)))
       t)
-  
+
     (defun rk/erc-nick-mentioned-hook (match-type nick message)
       "Shows a growl notification, when user's nick was mentioned. If the buffer is currently not visible, makes it sticky."
       (unless (posix-string-match "^\\** *Users on #" message)
         (growl
          (concat "ERC: name mentioned on: " (buffer-name (current-buffer)))
          message)))
-  
+
     (add-hook 'erc-text-matched-hook 'rk/erc-nick-mentioned-hook))
 #+END_SRC
 * javascript
+** js2
+#+begin_src elisp
+  (defvar js-modes '(js-mode js2-mode js3-mode))
+
+  (defmacro add-mode-hook-for-js (hook-function &optional append)
+    `(dolist (hook '(js-mode-hook js2-mode-hook js3-mode-hook))
+       (add-hook hook ,hook-function ,append)))
+
+  (defcustom preferred-javascript-mode 'js2-mode
+    "Javascript mode to use for .js files"
+    :type 'symbol
+    :group 'programming
+    :options js-modes)
+
+  (defvar preferred-mmm-javascript-mode 'js-mode)
+  (defvar preferred-javascript-indent-level 4)
+
+  ;; js2-mode
+  (setq js2-use-font-lock-faces t
+        js2-mode-must-byte-compile nil
+        js2-basic-offset preferred-javascript-indent-level
+        js2-indent-on-enter-key nil
+        js2-auto-indent-p t
+        js2-bounce-indent-p t)
+
+  ;; js-mode
+  (setq js-flat-functions t)
+  (setq js-indent-level preferred-javascript-indent-level)
+
+  ;; (eval-after-load "js"
+  ;;   '(progn
+  ;;      (modify-syntax-entry ?- "_" js-mode-syntax-table)))
+
+  ;; standard javascript-mode
+  (setq javascript-indent-level preferred-javascript-indent-level)
+
+
+  ;; MMM submode regions in html
+  (eval-after-load 'mmm-vars
+    `(progn
+       (mmm-add-group
+        'html-js
+        '((js-script-cdata
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "<script[^>]*>[ \t\n]*\\(//\\)?<!\\[CDATA\\[[ \t]*\n?"
+           :back "[ \t]*\\(//\\)?]]>[ \t\n]*</script>"
+           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
+                        @ "\n" _ "\n" @ "</script>" @)))
+          (js-script
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "<script[^>]*>[ \t]*\n?"
+           :back "[ \t]*</script>"
+           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
+                        @ "\n" _ "\n" @ "</script>" @)))
+          (js-inline
+           :submode ,preferred-mmm-javascript-mode
+           :face mmm-code-submode-face
+           :front "on\w+=\""
+           :back "\"")))
+       (dolist (mode (list 'html-mode))
+         (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?$" 'html-js))))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;;; no annoying warnings (help-echos) that won't go away for js3
+  ;(add-hook 'js3-mode-hook (lambda () (tooltip-mode -1)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;; use jshint
+  ;; On-the-fly syntax checking
+  ;; (require 'flymake-jshint)
+  ;; (setq flymake-jslint-command "jshint")
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;;; js3 specific
+  ;; (eval-after-load "js3"
+  ;;   '(progn
+  ;;     (defadvice js3-end-of-line (before js3-eol-support-mark)
+  ;;      "allow to set mark int transient mark mode"
+  ;;      (rk/set-mark-on-shift-press))
+
+  ;;     (defadvice js3-beginning-of-line (before js3-bol-support-mark)
+  ;;      "allow to set mark int transient mark mode"
+  ;;      (rk/set-mark-on-shift-press))
+
+  ;;     ;; (defadvice js3-mode-create-imenu-index (after js3-lively-imneu-defs)
+  ;;     ;;   "Add Lively class/method/object defs into return value for `imenu--index-alist'."
+  ;;     ;;   ;; store into this value to change return
+  ;;     ;;   ad-return-value)
+
+  ;;     (ad-activate 'js3-end-of-line)
+  ;;     (ad-activate 'js3-beginning-of-line)
+  ;;     ;; (ad-activate 'js3-mode-create-imenu-index)
+
+  ;;     (modify-syntax-entry ?_ "w" js3-mode-syntax-table)))
+
+  ;; (set-default 'js3-indent-level 4)
+
+  ;; (setq js3-indent-level 4
+  ;;       js3-cleanup-whitespace t
+  ;;       js3-consistent-level-indent-inner-bracket t
+  ;;       js3-enter-indents-newline t
+  ;;       js3-highlight-level 3
+  ;;       js3-mirror-mode nil
+  ;;       js3-missing-semi-one-line-override t
+  ;;       js3-rebind-eol-bol-keys t
+  ;;       js3-highlight-external-variables t)
+
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;;; pretty print json
+  (defun rk/pretty-json ()
+    (interactive)
+    (when (not (region-active-p))
+      (error "need selection"))
+    (let ((start (min (point) (mark)))
+          (end (max (point) (mark))))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region start end)
+          (goto-char (point-min))
+          ;; line break after first "{"
+          (if (re-search-forward "{\\([^\n]\\)" (point-max) t)
+              (replace-match "{\n\\1" nil nil))
+          ;; line break after every,
+          (while (re-search-forward ",[\s-]*\\([^\n]\\)" (point-max) t)
+            (replace-match ",\n\\1" nil nil))
+          (goto-char (point-max))
+          (if (re-search-backward "\\([^\n]\\)}" (point-min) t)
+              (replace-match "\\1\n}" nil nil))
+          (delete-trailing-whitespace (point-min) (point-max)))
+        (indent-region start end))))
+
+  (defun rk/remove-line-breaks ()
+    (interactive)
+    (when (not (region-active-p))
+      (error "need selection"))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region (point) (mark))
+        (goto-char (point-min))
+        (while (re-search-forward "\n[\s-]*" (point-max) t)
+          (replace-match "" nil nil)))))
+
+
+  (defun rk/convert-js-var-block (start end)
+    (interactive "r")
+    (let ((new-end start))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region start end)
+          (goto-char (point-min))
+          ;; skip the first var
+          (re-search-forward "\\s-*\\(var\\)\\s-+" (point-max) t)
+          ;; replace all preceding vars
+          (while (re-search-forward "\\(;\\)?\\(\\s-*\n\\s-*var\\s-+\\)" (point-max) t)
+            (replace-match ",\n" nil nil))
+          (setq new-end (point-max)))
+        (indent-region start new-end))))
+
+  (defun rk/toggle-js-whitespace-cleanup ()
+    (interactive)
+    (set-default 'js3-cleanup-whitespace (not js3-cleanup-whitespace))
+    (message (concat "js3-cleanup-whitespace set to " (prin1-to-string js3-cleanup-whitespace))))
+
+  (defun rk/js-make-pretty-with-uglify (js-source)
+    (let ((temp-file (make-temp-file "ugly-json")))
+      (unwind-protect
+          (with-temp-buffer
+            (insert js-source)
+            (write-file temp-file)
+            (let* ((cmd (concat "uglifyjs --beautify --indent 4 " temp-file))
+                   (result (shell-command-to-string cmd)))
+              (if (string-match "DEBUG: Error" result)
+                  (message "Error running JS beautifier. Is source code valid?")
+                (substring result 1 (- (length result) 2)))))
+        (delete-file temp-file))))
+
+  (defun rk/js-prettify-and-insert ()
+    (interactive)
+    ;; escape source in "(...);" so that JSON expressions go through
+    (rk/with-active-region-or-line start end
+      (let ((js-source (format "(%s);" (rk/current-region-or-line-string)))
+            deactivate-mark)
+        (kill-region start end)
+        (push-mark nil t t)
+        (insert (rk/js-make-pretty-with-uglify js-source)))))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+  ;;; js3 ast helper
+  ;; (defun rk/js3-node-name-at-point ()
+  ;;   ""
+  ;;   (interactive)
+  ;;   (message (js3-node-short-name (js3-node-at-point))))
+
+  ;; (defun rk/js3-get-func-def-info ()
+  ;;   "example: returns '(\"$world\" \"addScript\" \"foo\"
+  ;;   \"$world.addScript(fu|nction foo() {});\") from
+  ;;   '$world.addScript(fu|nction () {});'"
+  ;;   (let* ((current-node (js3-node-at-point))
+  ;;          (func-node (if (= js3-FUNCTION (js3-node-type current-node))
+  ;;                         current-node
+  ;;                       (js3-node-get-enclosing-scope current-node)))
+  ;;          (func-parent-node (js3-node-parent func-node))
+  ;;           target-node)
+  ;;      (when (and func-node func-parent-node (= js3-CALL (js3-node-type func-parent-node)))
+  ;;        (setq target-node (js3-call-node-target func-parent-node))
+  ;;        (mapcar 'js3-node-string (list
+  ;;                                  (js3-prop-get-node-left target-node)
+  ;;                                  (js3-prop-get-node-right target-node)
+  ;;                                  (js3-function-node-name func-node)
+  ;;                                  func-parent-node)))))
+
+  ;; ;; js3-node-abs-end
+  ;; (defun rk/js3-backward-up ()
+  ;;   ""
+  ;;   (interactive "")
+  ;;   (let ((old-pos (point))
+  ;;         (new-pos (js3-node-abs-pos (js3-node-parent (js3-node-at-point)))))
+  ;;     (when (= old-pos new-pos)
+  ;;         (setq new-pos (js3-node-abs-pos (js3-node-get-enclosing-scope (js3-node-at-point)))))
+  ;;     ;; (if this-command-keys-shift-translated (message "fooo"))
+  ;;     (goto-char new-pos)))
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ;; (require 'jquery-doc)
+
+  ;; adds ac-source-jquery to the ac-sources list
+  ;; (remove-hook 'js3-mode-hook 'jquery-doc-setup)
+  ;; (add-hook 'js3-mode-hook 'jquery-doc-setup)
+
+  ;;; (remove-hook 'js3-mode-hook 'jquery-doc-setup)
+
+  ;; (eval-after-load "jquery-doc"
+  ;;  '(progn
+  ;;     (dolist (hook '(j3s-mode-hook js2-mode-hook js-mode-hook)) (add-hook hook 'jquery-doc-setup))))
+#+end_src
 ** js3
 #+BEGIN_SRC elisp
   
