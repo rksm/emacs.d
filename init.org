@@ -1870,6 +1870,39 @@ Suppress GUI features
   ;;     (dolist (hook '(j3s-mode-hook js2-mode-hook js-mode-hook)) (add-hook hook 'jquery-doc-setup))))
   
 #+END_SRC
+* haskell
+#+BEGIN_SRC elisp
+  (dolist (hook '(haskell-mode-hook inferior-haskell-mode-hook))
+    (add-hook hook 'turn-on-haskell-doc-mode))
+
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+  (add-hook 'haskell-mode-hook (lambda () (subword-mode +1)))
+  ;; (add-hook 'haskell-mode-hook 'flymake-haskell-multi-load)
+
+  (when (eval-when-compile (>= emacs-major-version 24))
+    (require 'ghci-completion)
+    (add-hook 'inferior-haskell-mode-hook 'turn-on-ghci-completion))
+
+  (eval-after-load 'page-break-lines
+    '(push 'haskell-mode page-break-lines-modes))
+
+  ;; Make compilation-mode understand "at blah.hs:11:34-50" lines output by GHC
+  (eval-after-load 'compile
+    '(progn
+       (let ((alias 'ghc-at-regexp))
+         (add-to-list
+          'compilation-error-regexp-alist-alist
+          (list alias " at \\(.*\\.\\(?:l?[gh]hs\\|hi\\)\\):\\([0-9]+\\):\\([0-9]+\\)-[0-9]+$" 1 2 3 0 1))
+         (add-to-list
+          'compilation-error-regexp-alist alias))))
+
+  (defun rk/haskell-send-buffer ()
+    "eval current haskell buffer but don't switch to haskell
+  interpreter"
+    (interactive)
+    (save-window-excursion (inferior-haskell-load-and-run ":main")))
+#+END_SRC
+
 * key setup
 ** window related
 #+BEGIN_SRC emacs-lisp
