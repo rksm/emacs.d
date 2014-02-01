@@ -44,6 +44,7 @@ ELPA/marmalade repos.
            ghci-completion
            ;; flymake-hlint
            ;; flymake-haskell-multi
+           noctilux-theme
            ))
 
   (dolist (p my-packages)
@@ -2604,7 +2605,7 @@ Suppress GUI features
 * theming / colors
 ** theme
 #+BEGIN_SRC emacs-lisp
-(load-theme 'tango-dark)
+(load-theme 'noctilux)
  #+END_SRC)
 ** font size
 #+BEGIN_SRC emacs-lisp
