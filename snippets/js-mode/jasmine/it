@@ -1,0 +1,6 @@
+# name: jasmine - it
+# key: it
+# --
+it('${1:description}', function() {
+	$0
+});

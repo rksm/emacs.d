@@ -1,0 +1,4 @@
+# name: jasmine - expect to match
+# key: em
+# --
+expect(${1:target}).toMatch(${2:pattern});

@@ -1,0 +1,4 @@
+# name: jasmine - spy on
+# key: s
+# --
+spyOn(${1:object}, '${2:method}')$0;

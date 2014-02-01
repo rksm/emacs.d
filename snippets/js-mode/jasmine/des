@@ -1,0 +1,6 @@
+# name: jasmine - Describe
+# key: des
+# --
+describe('${1:description}', function() {
+	$0
+});

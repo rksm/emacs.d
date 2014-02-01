@@ -1,0 +1,4 @@
+# name: jasmine - spy on and call through
+# key: sct
+# --
+spyOn(${1:object}, '${2:method}').andCallThrough();

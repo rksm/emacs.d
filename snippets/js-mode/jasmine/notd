@@ -1,0 +1,4 @@
+# name: jasmine - expect not to be defined
+# key: notd
+# --
+expect(${1:target}).not.toBeDefined();

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+#name : iterate
+# --
+${1:collection}.${2:iterator}(function($3) {
+  $0
+});

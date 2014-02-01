@@ -1,0 +1,4 @@
+# name: jasmine - expect not to be falsy
+# key: notf
+# --
+expect(${1:target}).not.toBeFalsy();

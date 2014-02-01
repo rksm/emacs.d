@@ -1,0 +1,4 @@
+# name: jasmine - any
+# key: any
+# --
+jasmine.any($1)

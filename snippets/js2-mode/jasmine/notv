@@ -1,0 +1,4 @@
+# name: jasmine - expect not to be visible
+# key: notv
+# --
+expect(${1:target}).not.toBeVisible();

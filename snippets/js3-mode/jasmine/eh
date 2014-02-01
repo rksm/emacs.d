@@ -1,0 +1,4 @@
+# name: jasmine - expect to be hidden
+# key: eh
+# --
+expect(${1:target}).toBeHidden();

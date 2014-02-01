@@ -1,0 +1,5 @@
+# name: jasmine - expect was not called with
+# key: noscw
+# --
+expect(${1:target}).wasNotCalledWith(${2:arguments});
+

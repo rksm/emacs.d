@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+#name : forEach
+#key: fore
+# --
+forEach(function($1) {
+    $0
+});

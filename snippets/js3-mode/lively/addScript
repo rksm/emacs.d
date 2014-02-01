@@ -1,0 +1,9 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name: addScript
+# key: as
+# group: lively
+# contributor: Robert Krahn <robert.krahn@gmail.com>
+# --
+${1:morph}.addScript(function ${2:name}($3) {
+    $0
+});

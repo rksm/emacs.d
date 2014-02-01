@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#name : equal
+#key: e
+# --
+(equal $0)

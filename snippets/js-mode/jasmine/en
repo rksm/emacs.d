@@ -1,0 +1,4 @@
+# name: jasmine - expect to be null
+# key: en
+# --
+expect(${1:target}).toBeNull();

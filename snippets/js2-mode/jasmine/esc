@@ -1,0 +1,4 @@
+# name: jasmine - expect was called
+# key: esc
+# --
+expect(${1:target}).wasCalled();

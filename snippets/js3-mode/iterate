@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+#name : iterate
+#key : iter
+# --
+${1:iterator}(function($2) {
+    $0
+});

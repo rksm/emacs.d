@@ -1,0 +1,4 @@
+# -*- coding: utf-8 -*-
+# name: qunit equal
+# --
+equal(${1:val1}, ${2:val2}, "${3:msg}");

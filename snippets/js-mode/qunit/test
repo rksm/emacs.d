@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+# name: qunit test
+# --
+test("${1:test}", function() {
+  $2
+});

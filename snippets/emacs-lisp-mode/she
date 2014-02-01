@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+#name : should equal
+#key: she
+# --
+(should
+ (equal
+  $0
+  ))

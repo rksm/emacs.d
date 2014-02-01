@@ -1,0 +1,11 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name:js-src
+# key: jssrc
+# contributor: Robert Krahn <robert.krahn@gmail.com>
+# --
+#+name: ${1:name}
+#+begin_src js :results output :exports both
+  $0
+#+end_src
+
+

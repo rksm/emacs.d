@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#name : jshint header
+# --
+/*global $, console*/
+/*jshint immed: true, lastsemic: true*/

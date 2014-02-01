@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : script ext
+# --
+<script src="$0" type="text/javascript" charset="${1:utf-8}"></script>

@@ -1,0 +1,4 @@
+# name: jasmine - expect to be truthy
+# key: et
+# --
+expect(${1:target}).toBeTruthy();

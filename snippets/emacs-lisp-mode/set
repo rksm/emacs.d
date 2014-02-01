@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#name : setq
+#key: set
+# --
+(setq ${1:name} ${2:value})

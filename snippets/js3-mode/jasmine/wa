@@ -1,0 +1,4 @@
+# name: jasmine - waits
+# key: wa
+# --
+waits($1);

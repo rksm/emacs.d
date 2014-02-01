@@ -1,0 +1,4 @@
+# name: jasmine - expect to be visible
+# key: ev
+# --
+expect(${1:target}).toBeVisible();

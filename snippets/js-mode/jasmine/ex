@@ -1,0 +1,4 @@
+# name: jasmine - expect
+# key: ex
+# --
+expect(${1:target})$0;

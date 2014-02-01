@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+#name : defconst
+#key: defc
+# --
+(defconst ${1:name} ${2:value}
+  "$0")

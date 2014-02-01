@@ -1,0 +1,11 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name:R-src
+# key: Rsrc
+# contributor: Robert Krahn <robert.krahn@gmail.com>
+# --
+#+name: ${1:name}
+#+begin_src R :results ${2:$$(yas/choose-value '("silent" "value" "output"))} :exports both :session R-`(file-name-nondirectory buffer-file-name)`
+$0
+#+end_src
+
+

@@ -1,0 +1,4 @@
+# name: jasmine - spy on and call fake
+# key: scf
+# --
+spyOn(${1:object}, '${2:method}').andCallFake(${3:function});

@@ -1,0 +1,6 @@
+# name: jasmine - runs
+# key: ru
+# --
+runs(function() {
+	$0
+});

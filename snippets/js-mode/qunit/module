@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+# name: qunit module
+# --
+module("${1:name}", {
+  setup: function() {
+    $2
+  },
+  teardown: function() {
+    $3
+  }
+});

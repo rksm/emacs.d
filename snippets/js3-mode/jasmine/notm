@@ -1,0 +1,4 @@
+# name: jasmine - expect not to match
+# key: notm
+# --
+expect(${1:target}).not.toMatch(${2:pattern});

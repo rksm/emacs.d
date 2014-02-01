@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: lively-module
+# key: mdef
+# --
+module('${1:`(rk/string-replace-all (substring (file-name-sans-extension (buffer-file-name)) (length (textmate-project-root))) "/" ".")`}').requires(${2:'otherModule'}).toRun(function() {
+$0
+}); // end of module

@@ -1,0 +1,4 @@
+# -*- coding: utf-8 -*-
+# name: qunit ok
+# --
+ok(${1:bool}, "${2:msg");

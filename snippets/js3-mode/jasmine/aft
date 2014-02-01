@@ -1,0 +1,6 @@
+# name: jasmine - after each
+# key: aft
+# --
+afterEach(function() {
+	$0
+});

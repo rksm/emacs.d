@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#name : swank-js script
+# --
+<script type="text/javascript" src="http://localhost:8009/swank-js/load-swank.js"></script>
+

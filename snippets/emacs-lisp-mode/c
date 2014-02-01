@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#name : concat
+#key: c
+# --
+(concat $0)

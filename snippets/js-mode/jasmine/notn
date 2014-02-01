@@ -1,0 +1,4 @@
+# name: jasmine - expect not to be null
+# key: notn
+# --
+expect(${1:target}).not.toBeNull();

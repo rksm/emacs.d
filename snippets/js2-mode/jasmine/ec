@@ -1,0 +1,4 @@
+# name: jasmine - expect to contain
+# key: ec
+# --
+expect(${1:target}).toContain(${2:value});

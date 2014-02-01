@@ -1,0 +1,4 @@
+# name: jasmine - expect to equal
+# key: ee
+# --
+expect(${1:target}).toEqual(${2:value});

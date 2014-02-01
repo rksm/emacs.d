@@ -1,0 +1,4 @@
+# name: jasmine - expect was called with
+# key: escw
+# --
+expect(${1:target}).wasCalledWith(${2:arguments});

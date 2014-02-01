@@ -1,0 +1,4 @@
+# name: jasmine - expect to not have attribute
+# key: notha
+# --
+expect(${1:target}).not.toHaveAttr('${2:attr}'${3:, '${4:value}'});

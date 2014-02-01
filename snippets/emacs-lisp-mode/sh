@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+#name : should
+#key: sh
+# --
+(should
+ $0
+ )
