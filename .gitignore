@@ -10,3 +10,4 @@ auto-save-list/
 /.bookmarks.el
 /recentf
 eshell/
+ac-comphist.dat
