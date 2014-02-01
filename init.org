@@ -40,13 +40,13 @@ ELPA/marmalade repos.
            ;; erc
            ;; znc ;; bouncer
            ;; haskellme
-           haskell-mode
+           haskell-mode scion
            ghci-completion
            ;; flymake-hlint
            ;; flymake-haskell-multi
            noctilux-theme
            ))
-
+  
   (dolist (p my-packages)
     (when (not (package-installed-p p))
       (package-install p)))
@@ -2045,19 +2045,25 @@ Suppress GUI features
 * haskell
 #+BEGIN_SRC elisp
   (dolist (hook '(haskell-mode-hook inferior-haskell-mode-hook))
-    (add-hook hook 'turn-on-haskell-doc-mode))
-
+    (add-hook hook 'turn-on-haskell-doc-mode)
+    (setq haskell-doc-use-inf-haskell nil))
+  
   (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
-  (add-hook 'haskell-mode-hook (lambda () (subword-mode +1)))
+  ;; (add-hook 'haskell-mode-hook (lambda () (subword-mode +1)))
   ;; (add-hook 'haskell-mode-hook 'flymake-haskell-multi-load)
-
+  
   (when (eval-when-compile (>= emacs-major-version 24))
     (require 'ghci-completion)
     (add-hook 'inferior-haskell-mode-hook 'turn-on-ghci-completion))
-
+  
   (eval-after-load 'page-break-lines
     '(push 'haskell-mode page-break-lines-modes))
-
+  
+  (eval-after-load 'haskell
+    '(progn (setq
+             haskell-doc-use-inf-haskell nil t
+             haskell-program-name "ghci \"+.\"")))
+  
   ;; Make compilation-mode understand "at blah.hs:11:34-50" lines output by GHC
   (eval-after-load 'compile
     '(progn
@@ -2067,12 +2073,31 @@ Suppress GUI features
           (list alias " at \\(.*\\.\\(?:l?[gh]hs\\|hi\\)\\):\\([0-9]+\\):\\([0-9]+\\)-[0-9]+$" 1 2 3 0 1))
          (add-to-list
           'compilation-error-regexp-alist alias))))
-
+  
   (defun rk/haskell-send-buffer ()
     "eval current haskell buffer but don't switch to haskell
   interpreter"
     (interactive)
     (save-window-excursion (inferior-haskell-load-and-run ":main")))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;;; scion
+  
+  ;; Substitute the desired version for <version>
+  ;; (require 'scion)
+  
+  ;; ;; if ./cabal/bin is not in your $PATH
+  ;; (setq scion-program "~/.cabal/bin/scion-server")
+  
+  ;; (defun rk/haskell-enable-scion ()
+  ;;   (scion-mode 1)
+  ;;   ;; Whenever a file is saved, immediately type check it and
+  ;;   ;; highlight errors/warnings in the source.
+  ;;   (scion-flycheck-on-save 1))
+  
+  ;; (add-hook 'haskell-mode-hook 'rk/haskell-enable-scion)
+  
+  ;; (setq scion-completing-read-function 'ido-completing-read)
 #+END_SRC
 
 * key setup
