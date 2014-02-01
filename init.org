@@ -1335,11 +1335,14 @@ Suppress GUI features
   (require 'helm-config)
   (require 'helm-imenu)
   (helm-mode 1)
-
+  
   (setq helm-candidate-number-limit nil
         helm-samewindow nil ;; already covered by my window init
         helm-c-use-adaptative-sorting t
-        enable-recursive-minibuffers t)
+        enable-recursive-minibuffers t
+        helm-truncate-lines t
+        ;; no auto update when listing files
+        helm-ff-auto-update-initial-value nil)
 
   (defun rk/helm-symbols (arg)
     (interactive "P")
