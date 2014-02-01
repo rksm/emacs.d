@@ -16,9 +16,11 @@
         cua-delete-region
         cua-exchange-point-and-mark
         cua-paste-pop
+        delete-trailing-whitespace
         down-list
         downcase-region
         duplicate-line
+        electric-pair-backward-delete-char
         end-of-buffer
         end-of-visual-line
         ess-smart-comma
@@ -27,6 +29,7 @@
         forward-sentence
         forward-sexp
         iy-go-to-char
+        iy-go-to-char--command
         js3-beginning-of-line
         js3-end-of-line
         js3-enter-key
