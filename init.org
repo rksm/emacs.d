@@ -1559,7 +1559,7 @@ Suppress GUI features
 #+END_SRC
 * javascript
 ** js2
-#+begin_src elisp
+#+begin_src elisp :tangle no
   (defvar js-modes '(js-mode js2-mode js3-mode))
 
   (defmacro add-mode-hook-for-js (hook-function &optional append)
@@ -2598,8 +2598,8 @@ Suppress GUI features
     ;;; js
     ;; Need to first remove from list if present, since elpa adds entries too, which
     ;; may be in an arbitrary order
-    (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-    (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . js3-mode))
+    (add-to-list 'interpreter-mode-alist '("node" . js3-mode))
 
   ;  (autoload 'js3-mode "js3-mode")
   ;  (eval-when-compile (require 'cl))
