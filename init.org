@@ -2,7 +2,10 @@
 
 ** load path, etc.
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path (expand-file-name "~/.emacs.d"))
+  ;; emacs-major-version
+  ;; emacs-minor-version
+  ;; (emacs-version)
+  ;(add-to-list 'load-path (expand-file-name "~/.emacs.d"))
 #+END_SRC
 
 ** elpa
@@ -66,53 +69,61 @@ ELPA/marmalade repos.
 
 ** emacs interaction
 #+BEGIN_SRC emacs-lisp
-     (fset 'yes-or-no-p 'y-or-n-p)
-     (column-number-mode 1)
-     (setq-default blink-cursor-delay 0
-                   blink-cursor-interval 0.5
-                   mouse-highlight nil
-                   bookmark-default-file "~/.emacs.d/.bookmarks.el"
-                   buffers-menu-max-size 30
-                   case-fold-search t
-                   compilation-scroll-output t
-                   ediff-split-window-function 'split-window-horizontally
-                   ediff-window-setup-function 'ediff-setup-windows-plain
-                   grep-highlight-matches t
-                   grep-scroll-output nil
-                   indent-tabs-mode nil
-                   tab-width 4
-                   line-spacing 0.2
-                   set-mark-command-repeat-pop t
-                   show-trailing-whitespace t
-                   tooltip-delay 1.5
-                   truncate-lines nil
-                   truncate-partial-width-windows nil
-                   visible-bell t
-                   fill-column 80
-                   ;; backups
-                   make-backup-files t
-                   backup-directory-alist '(("." . "~/.emacs.d/backups"))
-                   kept-new-versions 6
-                   kept-old-versions 2
-                   version-control t
-                   delete-old-versions t
-                   ;; autosave
-                   auto-save-file-name-transforms `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
-                                                    (".*" "~/.emacs.d/backups" t))
-                   ;; lock files
-                   create-lockfiles nil)
-
-     (transient-mark-mode t)
-     (delete-selection-mode t)
-     ;; (cua-selection-mode t)
-
-    (show-paren-mode 1)
-    (electric-pair-mode 1)
-
-     ;; remember cursor pos
-     (setq save-place t)
-     (require 'saveplace)
-     (setq save-place-file "~/.emacs.d/saved-places")
+   (setq-default blink-cursor-delay 0
+                 mouse-highlight nil
+                 bookmark-default-file "~/.emacs.d/.bookmarks.el"
+                 buffers-menu-max-size 30
+                 case-fold-search t
+                 compilation-scroll-output t
+                 ediff-split-window-function 'split-window-horizontally
+                 ediff-window-setup-function 'ediff-setup-windows-plain
+                 grep-highlight-matches t
+                 grep-scroll-output nil
+                 indent-tabs-mode nil
+                 tab-width 4
+                 ;; line-spacing 0.2
+                 set-mark-command-repeat-pop t
+                 show-trailing-whitespace t
+                 ;; tooltip-delay 1.5
+                 truncate-lines nil
+                 truncate-partial-width-windows nil
+                 visible-bell t
+                 fill-column 80
+                 ;; backups
+                 make-backup-files t
+                 backup-directory-alist '(("." . "~/.emacs.d/backups"))
+                 kept-new-versions 6
+                 kept-old-versions 2
+                 version-control t
+                 delete-old-versions t
+                 ;; autosave
+                 auto-save-file-name-transforms
+                 `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
+                   (".*" "~/.emacs.d/backups" t))
+                 ;; lock files
+                 create-lockfiles nil)
+  
+  (fset 'yes-or-no-p 'y-or-n-p)
+  (column-number-mode 1)
+  (blink-cursor-mode 0)
+  (setq initial-scratch-message "")
+  (setq inhibit-startup-message t)
+  (scroll-bar-mode 0)
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
+  
+  (electric-pair-mode 1)
+  (electric-indent-mode -1)
+  (show-paren-mode 1)
+  (setq show-paren-delay 0
+        show-paren-style 'parenthesis)
+   (transient-mark-mode t)
+   (delete-selection-mode t)
+  
+   ;; remember cursor pos
+   (setq save-place t)
+   (require 'saveplace)
+   (setq save-place-file "~/.emacs.d/saved-places")
 #+END_SRC
 
 ** snippets
@@ -418,49 +429,49 @@ the result into the clipboard"
 #+END_SRC
 ** buffer related
 #+BEGIN_SRC elisp
-  (require 'fringemark)
-  (defun rk/fringe-shrink ()
-    "for focusing on one buffer"
-    (interactive)
-    (let* ((target-frame-width 800)
-          (required-fringe-width (- (frame-pixel-width) target-frame-width)))
-      (unless (< (frame-pixel-width) target-frame-width)
-        (set-fringe-style (floor required-fringe-width 2)))))
-
-  (defun rk/fringe-widen ()
-    (interactive)
-    (set-fringe-style nil))
-
-; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-(defun rk/split-buffer (buffer-or-name &optional separator)
-  "split the buffer contents using `separator'"
-  (let ((sep (or separator "\n----*\n")))
-    (split-string (with-current-buffer buffer-or-name
-                    (buffer-substring-no-properties (point-min) (point-max))) sep)))
-
-(defun rk/split-buffer-and-do (buffer-or-name do-func &optional separator)
-  (mapc do-func (rk/split-buffer buffer-or-name separator)))
-
-(defun rk/create-file (filename &optional content)
-  "create a buffer from `filename' and immediately save it"
-  (interactive "F")
-  (let ((buf (create-file-buffer filename)))
-    (with-current-buffer buf
-      (progn
-        (setq buffer-file-name filename)
-        (if content
-            (insert content)
-          (set-buffer-modified-p t))
-        (save-buffer)))))
-
-(defun rk/split-buffer-and-save-parts (buffer-or-name filename-func &optional separator)
-  "split the buffer using separator and save each splits in a buffer/file using `filename-func'.
-`filename-func' expects the splitted content as arg"
-  (rk/split-buffer-and-do
-   buffer-or-name
-   (lambda (content) (rk/create-file (funcall filename-func content) content))
-   separator))
+    (require 'fringemark)
+    (defun rk/fringe-shrink ()
+      "for focusing on one buffer"
+      (interactive)
+      (let* ((target-frame-width 950)
+            (required-fringe-width (- (frame-pixel-width) target-frame-width)))
+        (unless (< (frame-pixel-width) target-frame-width)
+          (set-fringe-style (floor required-fringe-width 2)))))
+  
+    (defun rk/fringe-widen ()
+      (interactive)
+      (set-fringe-style nil))
+  
+  ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (defun rk/split-buffer (buffer-or-name &optional separator)
+    "split the buffer contents using `separator'"
+    (let ((sep (or separator "\n----*\n")))
+      (split-string (with-current-buffer buffer-or-name
+                      (buffer-substring-no-properties (point-min) (point-max))) sep)))
+  
+  (defun rk/split-buffer-and-do (buffer-or-name do-func &optional separator)
+    (mapc do-func (rk/split-buffer buffer-or-name separator)))
+  
+  (defun rk/create-file (filename &optional content)
+    "create a buffer from `filename' and immediately save it"
+    (interactive "F")
+    (let ((buf (create-file-buffer filename)))
+      (with-current-buffer buf
+        (progn
+          (setq buffer-file-name filename)
+          (if content
+              (insert content)
+            (set-buffer-modified-p t))
+          (save-buffer)))))
+  
+  (defun rk/split-buffer-and-save-parts (buffer-or-name filename-func &optional separator)
+    "split the buffer using separator and save each splits in a buffer/file using `filename-func'.
+  `filename-func' expects the splitted content as arg"
+    (rk/split-buffer-and-do
+     buffer-or-name
+     (lambda (content) (rk/create-file (funcall filename-func content) content))
+     separator))
 #+END_SRC
 ** buffers
 #+BEGIN_SRC emacs-lisp
