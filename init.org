@@ -1347,7 +1347,13 @@ Suppress GUI features
   (require 'helm-imenu)
   (helm-mode 1)
   
-  (setq helm-candidate-number-limit nil
+  (setq helm-idle-delay 0.3
+        helm-quick-update t
+        helm-candidate-number-limit 400
+        ;; helm-candidate-number-limit nil
+        helm-su-or-sudo "sudo"
+        helm-allow-skipping-current-buffer nil
+  
         helm-samewindow nil ;; already covered by my window init
         helm-c-use-adaptative-sorting t
         enable-recursive-minibuffers t
@@ -2643,9 +2649,13 @@ Suppress GUI features
 #+END_SRC
 * theming / colors
 ** theme
-#+BEGIN_SRC emacs-lisp
-(load-theme 'noctilux)
- #+END_SRC)
+#+BEGIN_SRC elisp
+  (custom-set-faces
+   '(show-paren-match
+     ((t(:weight bold :slant normal :underline nil :inverse-video t :foreground "#aadddd" :background "#292929")))))
+  
+  (load-theme 'noctilux t)
+ #+END_SRC
 ** font size
 #+BEGIN_SRC emacs-lisp
 (require 'cl)
