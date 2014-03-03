@@ -1336,12 +1336,13 @@ Suppress GUI features
         helm-allow-skipping-current-buffer nil
   
         helm-samewindow nil ;; already covered by my window init
-        helm-c-use-adaptative-sorting t
         enable-recursive-minibuffers t
         helm-truncate-lines t
         ;; no auto update when listing files
         helm-ff-auto-update-initial-value nil)
-
+  
+  (helm-adaptative-mode 1)
+  
   (defun rk/helm-symbols (arg)
     (interactive "P")
     ;; see `helm-occur'
