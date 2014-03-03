@@ -11,3 +11,5 @@ auto-save-list/
 /recentf
 eshell/
 ac-comphist.dat
+cider-history
+helm-adaptive-history
