@@ -37,7 +37,7 @@ ELPA/marmalade repos.
            js3-mode
            ;; lispy things
            paredit
-           clojure-mode clojure-test-mode cider
+           clojure-mode clojure-test-mode cider troncle clojure-cheatsheet
            ;; erc
            ;; znc ;; bouncer
            ;; haskellme
@@ -809,8 +809,6 @@ active to `point-min' and `point-max'"
 
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  ;;; eshell
-  (setq eshell-buffer-shorthand t)
 
   ;;; tramp
   (setq tramp-default-user-alist '(("\\`smb\\'" nil nil)
@@ -1272,66 +1270,41 @@ Suppress GUI features
   (require 'cider)
   (add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
   (add-hook 'cider-repl-mode-hook 'paredit-mode)
-#+END_SRC
-
-
-***** nrepl
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; nrepl setup
-  (setq nrepl-hide-special-buffers t)
-  (setq nrepl-popup-stacktraces-in-repl t)
-  (setq nrepl-history-file "~/.emacs.d/nrepl-history")
   
-  ;;; my nrepl keys
+  (setq cider-popup-stacktraces-in-repl t)
+  (setq cider-repl-pop-to-buffer-on-connect nil)
+  (setq cider-history-file "~/.emacs.d/cider-history")
   
-  (defvar rk/nrepl-key-map (make-keymap) "my nrepl keys")
+  (defvar rk/cider-key-map (make-keymap) "my clojure keys")
   
-  (defun rk/nrepl-print-and-mark (arg)
+  ;; ;; nrepl setup
+  ;; (setq cider-hide-special-buffers t)
+  
+  ;;; my cider keys
+  (defun rk/cider-print-and-mark (arg)
     (interactive "P")
     (push-mark (point) t t)
     (if arg
-        (nrepl-pprint-eval-last-expression)
-        (nrepl-eval-print-last-expression)))
+        (cider-pprint-eval-last-expression)
+        (cider-eval-print-last-sexp)))
   
-  (define-key rk/nrepl-key-map (kbd "C-x C-p") 'rk/nrepl-print-and-mark)
-  (define-key rk/nrepl-key-map (kbd "s-p") 'rk/nrepl-print-and-mark)
-  (define-key rk/nrepl-key-map (kbd "s-d") 'nrepl-eval-last-expression)
-  (define-key rk/nrepl-key-map (kbd "s-i") 'nrepl-inspect)
-  (define-key rk/nrepl-key-map (kbd "s-I") 'nrepl-src)
+  (define-key rk/cider-key-map (kbd "C-x C-p") 'rk/cider-print-and-mark)
+  (define-key rk/cider-key-map (kbd "s-p") 'rk/cider-print-and-mark)
+  (define-key rk/cider-key-map (kbd "s-d") 'cider-eval-last-expression)
+  (define-key rk/cider-key-map (kbd "s-i") 'cider-inspect)
+  (define-key rk/cider-key-map (kbd "s-I") 'cider-src)
   
-  (define-minor-mode rk/nrepl-minor-mode
+  (define-minor-mode rk/cider-minor-mode
     "A minor mode so that my key settings override annoying major modes."
-    nil " rknREPL" rk/nrepl-key-map)
+    nil " rkclj" rk/cider-key-map)
   
-  (defun rk/turn-on-nrepl-minor-mode () (rk/nrepl-minor-mode 1))
+  (defun rk/turn-on-cider-minor-mode () (rk/cider-minor-mode 1))
   
-  (add-hook 'nrepl-interaction-mode-hook 'nrepl-turn-on-eldoc-mode)
-  (add-hook 'nrepl-interaction-mode-hook 'rk/turn-on-nrepl-minor-mode t t)
-  
-  ;;; auto-complete
-  (require 'ac-nrepl)
-  (eval-after-load "auto-complete"
-    '(add-to-list 'ac-modes 'nrepl-mode))
-  (add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
-  
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
-  (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "nrepl-inspect"))
-  (require 'nrepl-inspect)
-  
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
-  (require 'nrepl-ritz)
-  (define-key nrepl-interaction-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
-  (define-key nrepl-mode-map (kbd "C-x C-j") 'nrepl-javadoc)
-  (define-key nrepl-interaction-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
-  (define-key nrepl-mode-map (kbd "C-x C-h") 'nrepl-ritz-apropos)
-  
-  (define-key nrepl-interaction-mode-map (kbd "M-SPC") 'nrepl-ritz-compile-expression)
-  (define-key nrepl-mode-map (kbd "M-SPC") 'nrepl-ritz-compile-expression)
-  (define-key nrepl-mode-map (kbd "s-k") 'nrepl-clear-output)
+  ;; (add-hook 'cider-mode-hook 'rk/turn-on-cider-minor-mode t t)
+  (add-hook 'cider-mode-hook 'rk/turn-on-cider-minor-mode)
   
 #+END_SRC
+
 * version control
 ** magit
 #+BEGIN_SRC emacs-lisp
