@@ -116,7 +116,7 @@ ELPA/marmalade repos.
   (electric-pair-mode 1)
   (electric-indent-mode -1)
    (transient-mark-mode t)
-   (delete-selection-mode t)
+   (delete-selection-mode 1)
   
    ;; remember cursor pos
    (setq save-place t)
