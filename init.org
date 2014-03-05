@@ -813,22 +813,23 @@ active to `point-min' and `point-max'"
                                 (lambda (line) (rk/string-match line "\\([^=]+\\)=\\(.*\\)" '(1 2)))
                                 lines))))
            (mapcar (lambda (var-value) `(setenv ,@var-value)) vars-and-vals))))
-
+  
   (when (and *is-a-mac* window-system)
     (rk/set-env-from-system-shell
      "PATH" "MANPATH"
      "CPATH" "PKG_CONFIG_PATH" "C_INCLUDE_PATH" "CPLUS_INCLUDE_PATH" "PYTHONPATH"
+     "LDFLAGS" "CFLAGS" "LIBS"  "DYLD_LIBRARY_PATH"
+     "JAVA_HOME" "CLOJURESCRIPT_HOME" "DOCKER_HOST" "TESSDATA_PREFIX"
      "ZSH_PROFILE"
-     "PLAYERPATH" "STAGEPATH" "ROS_OS_OVERRIDE"
      "ARDUINO_DIR" "ARDMK_DIR"
      "NOTES" "LIVELY" "WEBWERKSTATT"))
-
+  
   (setq exec-path (split-string (getenv "PATH") path-separator))
   (setenv "PAGER" "/bin/cat")
-
+  
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-
+  
+  
   ;;; tramp
   (setq tramp-default-user-alist '(("\\`smb\\'" nil nil)
                                    ("\\`\\(?:fcp\\|krlogin\\|r\\(?:cp\\|emcp\\|sh\\)\\|telnet\\)\\'" nil "robert")
