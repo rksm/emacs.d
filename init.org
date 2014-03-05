@@ -28,7 +28,7 @@ ELPA/marmalade repos.
            expand-region
            move-text
            auto-complete
-           helm
+           helm ac-helm
            wgrep
            magit
            ;; weby stuff
@@ -1321,6 +1321,42 @@ Suppress GUI features
 
   (define-key vc-prefix-map (kbd "SPC") 'magit-status-somedir)
 #+END_SRC
+* auto-complete
+#+BEGIN_SRC emacs-lisp
+  (require 'auto-complete)
+  (require 'auto-complete-config)
+  (global-auto-complete-mode t)
+  (setq ac-auto-start nil)
+  (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
+  (setq ac-quick-help-delay 0.3)
+  (setq ac-use-fuzzy nil)
+  (define-key ac-completing-map (kbd "C-n") 'ac-next)
+  (define-key ac-completing-map (kbd "C-p") 'ac-previous)
+  
+  (setq tab-always-indent t)  ;; use 'complete when auto-complete is disabled
+  (add-to-list 'completion-styles 'initials t)
+  
+  ;; hook AC into completion-at-point
+  (defun set-auto-complete-as-completion-at-point-function ()
+    (setq completion-at-point-functions '(auto-complete)))
+  (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+  
+  
+  (set-default 'ac-sources
+               '(ac-source-dictionary
+                 ac-source-words-in-buffer
+                 ac-source-words-in-same-mode-buffers
+                 ac-source-words-in-all-buffer))
+  
+  (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
+                                      sass-mode yaml-mode csv-mode espresso-mode haskell-mode
+                                      html-mode sh-mode clojure-mode
+                                      lisp-mode textile-mode markdown-mode tuareg-mode
+                                      js3-mode css-mode less-css-mode
+                                      octave-mode))
+    (add-to-list 'ac-modes mode))
+  
+#+END_SRC
 * helm
 ** basics
 #+BEGIN_SRC emacs-lisp
@@ -1386,78 +1422,6 @@ Suppress GUI features
                 rk/helm-c-source-projectf
                 helm-c-source-recentf
                 helm-c-source-bookmarks)))
-
-#+END_SRC
-** auto-complete
-#+BEGIN_SRC emacs-lisp
-  (defvar rk/helm-c-source-ac-completion
-    '((name . "Auto Completion")
-      (init . (lambda ()
-                (with-helm-current-buffer
-                  (ac-abort)
-                  (ac-start)
-                  (helm-attrset 'ac-candidates (ac-candidates))
-                  (ac-abort))))
-      (candidates . (lambda () (helm-attr 'ac-candidates)))
-      (action . (lambda (partial) (insert-and-inherit partial
-
-                              ;; fixme not only usable for js...
-                              ;; (substring partial (length (rk/ac-slime-js-prefix-string)))
-                              )))))
-
-  (defun rk/helm-ac-completion ()
-    (interactive)
-    (helm
-     :prompt "Completion: "
-     :sources '(rk/helm-c-source-ac-completion)))
-#+END_SRC
-* auto-complete
-#+BEGIN_SRC emacs-lisp
-  ;; -*-no-byte-compile: t; -*-
-  
-  (require 'auto-complete)
-  (require 'auto-complete-config)
-  (global-auto-complete-mode t)
-  (setq ac-auto-start nil)
-  (setq ac-dwim nil) ; To get pop-ups with docs even if a word is uniquely completed
-  (setq ac-quick-help-delay 0.3)
-  (setq ac-use-fuzzy t)
-  (define-key ac-completing-map (kbd "C-n") 'ac-next)
-  (define-key ac-completing-map (kbd "C-p") 'ac-previous)
-  
-  ;;----------------------------------------------------------------------------
-  ;; Use Emacs' built-in TAB completion hooks to trigger AC (Emacs >= 23.2)
-  ;;----------------------------------------------------------------------------
-  (setq tab-always-indent t)  ;; use 'complete when auto-complete is disabled
-  (add-to-list 'completion-styles 'initials t)
-  
-  ;; hook AC into completion-at-point
-  (defun set-auto-complete-as-completion-at-point-function ()
-    (setq completion-at-point-functions '(auto-complete)))
-  (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
-  
-  
-  (set-default 'ac-sources
-               '(ac-source-dictionary
-                 ac-source-words-in-buffer
-                 ac-source-words-in-same-mode-buffers
-                 ac-source-words-in-all-buffer))
-  
-  (dolist (mode '(magit-log-edit-mode log-edit-mode org-mode text-mode haml-mode
-                  sass-mode yaml-mode csv-mode espresso-mode haskell-mode
-                  html-mode sh-mode clojure-mode
-                  lisp-mode textile-mode markdown-mode tuareg-mode
-                  js3-mode css-mode less-css-mode
-                  octave-mode))
-    (add-to-list 'ac-modes mode))
-  
-  
-  ;; Exclude very large buffers from dabbrev
-  (defun sanityinc/dabbrev-friend-buffer (other-buffer)
-    (< (buffer-size other-buffer) (* 1 1024 1024)))
-  
-  (setq dabbrev-friend-buffer-function 'sanityinc/dabbrev-friend-buffer)
-  
 #+END_SRC
 * flycheck
 #+BEGIN_SRC elisp
@@ -2058,8 +2022,8 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
   (global-set-key (kbd "M-/") 'hippie-expand)
-  (global-set-key (kbd "s-?") 'auto-complete)
-  (global-set-key (kbd "M-SPC") 'auto-complete)
+  (global-set-key (kbd "s-?") 'ac-complete-with-helm)
+  (global-set-key (kbd "M-SPC") 'ac-complete-with-helm)
   
   (set-default 'yas/trigger-key "s-\\")
   ;; (yas/initialize)
