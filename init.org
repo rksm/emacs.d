@@ -1593,7 +1593,8 @@ Suppress GUI features
       (ad-activate 'js3-beginning-of-line)
       ;; (ad-activate 'js3-mode-create-imenu-index)
   
-      (modify-syntax-entry ?_ "w" js3-mode-syntax-table)))
+      (modify-syntax-entry ?_ "w" js3-mode-syntax-table)
+      (rk/setup-js3-keys)))
   
   ;; (set-default 'js3-indent-level 4)
   
@@ -1726,6 +1727,10 @@ Suppress GUI features
           (setq new-pos (js3-node-abs-pos (js3-node-get-enclosing-scope (js3-node-at-point)))))
       ;; (if this-command-keys-shift-translated (message "fooo"))
       (goto-char new-pos)))
+  
+  (defun rk/setup-js3-keys ()
+    ""
+    (define-key js3-mode-map (kbd "C-M-u") 'rk/js3-backward-up))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
