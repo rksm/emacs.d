@@ -1560,40 +1560,10 @@ Suppress GUI features
   (setq javascript-indent-level preferred-javascript-indent-level)
   
   
-  ;; MMM submode regions in html
-  (eval-after-load 'mmm-vars
-    `(progn
-       (mmm-add-group
-        'html-js
-        '((js-script-cdata
-           :submode ,preferred-mmm-javascript-mode
-           :face mmm-code-submode-face
-           :front "<script[^>]*>[ \t\n]*\\(//\\)?<!\\[CDATA\\[[ \t]*\n?"
-           :back "[ \t]*\\(//\\)?]]>[ \t\n]*</script>"
-           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
-                        @ "\n" _ "\n" @ "</script>" @)))
-          (js-script
-           :submode ,preferred-mmm-javascript-mode
-           :face mmm-code-submode-face
-           :front "<script[^>]*>[ \t]*\n?"
-           :back "[ \t]*</script>"
-           :insert ((?j js-tag nil @ "<script language=\"JavaScript\">"
-                        @ "\n" _ "\n" @ "</script>" @)))
-          (js-inline
-           :submode ,preferred-mmm-javascript-mode
-           :face mmm-code-submode-face
-           :front "on\w+=\""
-           :back "\"")))
-       (dolist (mode (list 'html-mode))
-         (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?$" 'html-js))))
-  
-  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
   ;;; no annoying warnings (help-echos) that won't go away for js3
   (add-hook 'js3-mode-hook (lambda () (tooltip-mode -1)))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  
   
   ;; use jshint
   ;; On-the-fly syntax checking
