@@ -1279,7 +1279,7 @@ Suppress GUI features
       (rk/flash-region start end 0.7)
       (eval-region start end t)))
   
-  (define-key emacs-lisp-mode-map (kbd "M-SPC") 'rk/eval-defun-flash)
+  (define-key emacs-lisp-mode-map (kbd "M-S-SPC") 'rk/eval-defun-flash)
 #+END_SRC
 
 **** clojure
