@@ -307,123 +307,123 @@ ELPA/marmalade repos.
 * useful functions
 ** strings and list processing
 #+BEGIN_SRC emacs-lisp
-(defun rk/filter (condp lst)
-  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
-
-; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-(defun my-string-starts-with (start-string string)
-  (when (<= (length start-string) (length string))
-    (string-equal
-     start-string
-     (substring string 0 (length start-string)))))
-
-(defun my-include-list (list element)
-  (let ((item (car list)))
-    (cond
-     ((equal nil item) nil)
-     ((equal element item) t)
-     (t (my-include-list (cdr list) element)))))
-
-(defun rk/string-join (list &optional separator item-converter)
-  (mapconcat (or item-converter 'identity) list (or separator "\n")))
-
-(defun rk/string-match (string regexp index-or-list)
-  "match string with regexp and return those matches defined by `index-or-list'"
-  (save-match-data
-    (let ((success (string-match regexp string)))
-     (when success
-       (if (numberp index-or-list)
-           (match-string-no-properties index-or-list string)
-         (mapcar (lambda (n) (match-string-no-properties n string)) index-or-list))))))
-
-(defun rk/string-trim (str)
-  "Chomp leading and tailing whitespace from STR."
-  (while (string-match "\\`\n+\\|^\\s-+\\|\\s-+$\\|\n+\\'"
-                       str)
-    (setq str (replace-match "" t t str)))
-  str)
-
-(defun rk/string-replace-all (string match-string replacement)
-  (let ((case-fold-search nil))
-    (while (string-match match-string string)
-      (setq string (replace-match replacement t t string))))
-  string)
-
-(defun rk/current-line-string ()
-  "string with no props"
-  (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-
-(defun rk/current-region-or-line-string ()
-  "string comes with no props"
-  (rk/with-active-region-or-line start end
-    (buffer-substring-no-properties start end)))
-
-(defun rk/current-line-indent ()
-  "returns the indent of the line at point as a string"
-  (let ((line (rk/current-line-string)))
-    (or (rk/string-match line "^[\s]+" 0) "")))
-
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-;;; line iterating/replacement
-(defun rk/do-for-each-line-in-region (func &optional no-insert)
-  "applies func to each line in region"
-  (let* ((start (if (region-active-p) (mark) (buffer-end -1)))
-         (end (if (region-active-p) (point) (buffer-end 1)))
-         (lines (split-string (buffer-substring-no-properties start end) "[\n]+"))
-         (count -1)
-         (with-count (= 2 (length (help-function-arglist func))))
-         (replacement-for-lines (mapcar
-                                 `(lambda (line)
-                                    ,(append '(funcall
-                                               func
-                                               line)
-                                             (when with-count '((setq count (1+ count))))))
-                                 lines)))
-    (progn
-      (unless no-insert
-        (kill-region start end)
-        (insert (my-string-join replacement-for-lines "\n")))
-      replacement-for-lines)))
-
-;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-(defun rk/stringify-line (line &optional is-first)
-  (concat
-   (if is-first "\"" "+ \"")
-   (replace-regexp-in-string "\"" "\\\"" line t t)
-   "\\n\""))
-
-(defun rk/unstringify-line (line)
-  (let ((replacements '(;; ("\\\"" . "\"")
-                        ("^\\\(\\s-*\\\)\"\\|\"\\s-*$" . "\\1")    ; remove <"> at line starts
-                        ("\\(\\\\n\\)?\"\\s-+\\+" . "")  ; remove <" +> and <\n" +>
-                        ("\\\\\"" . "\"") ; <\"> --> <">
-                        )))
-    (reduce (lambda (string pair) (replace-regexp-in-string (car pair) (cdr pair) string)) replacements :initial-value line)))
-
-(defun rk/stringify-region (start end)
-  (interactive "r")
-  (if (and start end)
-      (rk/do-for-each-line-in-region (lambda (line i)
-                                       (rk/stringify-line line (= i 0))))))
-
-(defun rk/unstringify-region (start end)
-  (interactive "r")
-  (if (and start end)
-      (rk/do-for-each-line-in-region 'rk/unstringify-line)))
-
-(defun rk/copy-stringified ()
-  "pipe region or buffer through `rk/stringify-region' and put
-the result into the clipboard"
-  (interactive)
-  (rk/with-string-from-active-region-or-whole-buffer string
-    (with-temp-buffer
-      (insert string)
-      (rk/stringify-region (point-min) (point-max))
-      (kill-region (point-min) (point-max)))))
-
-
+  (defun rk/filter (condp lst)
+    (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+  
+  ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  (defun my-string-starts-with (start-string string)
+    (when (<= (length start-string) (length string))
+      (string-equal
+       start-string
+       (substring string 0 (length start-string)))))
+  
+  (defun my-include-list (list element)
+    (let ((item (car list)))
+      (cond
+       ((equal nil item) nil)
+       ((equal element item) t)
+       (t (my-include-list (cdr list) element)))))
+  
+  (defun rk/string-join (list &optional separator item-converter)
+    (mapconcat (or item-converter 'identity) list (or separator "\n")))
+  
+  (defun rk/string-match (string regexp index-or-list)
+    "match string with regexp and return those matches defined by `index-or-list'"
+    (save-match-data
+      (let ((success (string-match regexp string)))
+       (when success
+         (if (numberp index-or-list)
+             (match-string-no-properties index-or-list string)
+           (mapcar (lambda (n) (match-string-no-properties n string)) index-or-list))))))
+  
+  (defun rk/string-trim (str)
+    "Chomp leading and tailing whitespace from STR."
+    (while (string-match "\\`\n+\\|^\\s-+\\|\\s-+$\\|\n+\\'"
+                         str)
+      (setq str (replace-match "" t t str)))
+    str)
+  
+  (defun rk/string-replace-all (string match-string replacement)
+    (let ((case-fold-search nil))
+      (while (string-match match-string string)
+        (setq string (replace-match replacement t t string))))
+    string)
+  
+  (defun rk/current-line-string ()
+    "string with no props"
+    (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+  
+  (defun rk/current-region-or-line-string ()
+    "string comes with no props"
+    (rk/with-active-region-or-line start end
+      (buffer-substring-no-properties start end)))
+  
+  (defun rk/current-line-indent ()
+    "returns the indent of the line at point as a string"
+    (let ((line (rk/current-line-string)))
+      (or (rk/string-match line "^[\s]+" 0) "")))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  ;;; line iterating/replacement
+  (defun rk/do-for-each-line-in-region (func &optional no-insert)
+    "applies func to each line in region"
+    (let* ((start (if (region-active-p) (mark) (buffer-end -1)))
+           (end (if (region-active-p) (point) (buffer-end 1)))
+           (lines (split-string (buffer-substring-no-properties start end) "[\n]+"))
+           (count -1)
+           (with-count (= 2 (length (help-function-arglist func))))
+           (replacement-for-lines (mapcar
+                                   `(lambda (line)
+                                      ,(append '(funcall
+                                                 func
+                                                 line)
+                                               (when with-count '((setq count (1+ count))))))
+                                   lines)))
+      (progn
+        (unless no-insert
+          (kill-region start end)
+          (insert (s-join "\n" replacement-for-lines)))
+        replacement-for-lines)))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (defun rk/stringify-line (line &optional is-first)
+    (concat
+     (if is-first "\"" "+ \"")
+     (replace-regexp-in-string "\"" "\\\"" line t t)
+     "\\n\""))
+  
+  (defun rk/unstringify-line (line)
+    (let ((replacements '(;; ("\\\"" . "\"")
+                          ("^\\\(\\s-*\\\)\"\\|\"\\s-*$" . "\\1")    ; remove <"> at line starts
+                          ("\\(\\\\n\\)?\"\\s-+\\+" . "")  ; remove <" +> and <\n" +>
+                          ("\\\\\"" . "\"") ; <\"> --> <">
+                          )))
+      (reduce (lambda (string pair) (replace-regexp-in-string (car pair) (cdr pair) string)) replacements :initial-value line)))
+  
+  (defun rk/stringify-region (start end)
+    (interactive "r")
+    (if (and start end)
+        (rk/do-for-each-line-in-region (lambda (line i)
+                                         (rk/stringify-line line (= i 0))))))
+  
+  (defun rk/unstringify-region (start end)
+    (interactive "r")
+    (if (and start end)
+        (rk/do-for-each-line-in-region 'rk/unstringify-line)))
+  
+  (defun rk/copy-stringified ()
+    "pipe region or buffer through `rk/stringify-region' and put
+  the result into the clipboard"
+    (interactive)
+    (rk/with-string-from-active-region-or-whole-buffer string
+      (with-temp-buffer
+        (insert string)
+        (rk/stringify-region (point-min) (point-max))
+        (kill-region (point-min) (point-max)))))
+  
+  
 #+END_SRC
 ** buffer related
 #+BEGIN_SRC elisp
@@ -695,65 +695,71 @@ active to `point-min' and `point-max'"
 #+END_SRC
 ** tests
 #+BEGIN_SRC elisp
-(ert-deftest rk/activate-region-test ()
-  (with-temp-buffer
-    (insert "foo\nbar\nbaz")
-    (rk/activate-region 2 6)
-    (should (equal "oo\nb" (buffer-substring-no-properties (region-beginning) (region-end))))))
-
-(ert-deftest rk/current-line-string-test ()
-  (with-temp-buffer
-    (insert "foo bar\nbaz\nzork")
-    (goto-line 2) (forward-char 1)
-    (should (equal "baz" (rk/current-line-string)))))
-
-;; (rk/do-for-each-line-test)
-(ert-deftest rk/do-for-each-line-test ()
-  (with-temp-buffer
-   "--rk-do-for-each-line-test-buffer--"
-   (let (result)
-     ;; start: 1 end: 12 + 1
-     (insert "ha\nll\no\nwelt")
-     (goto-char (+ 12 1))
-
-     (setq result (rk/do-for-each-line-in-region 'identity))
-     (assert (equal '("ha" "ll" "o" "welt") result) t "no lines without setting mark")
-
-     (set-mark 1)
-
-     (setq result (length (rk/do-for-each-line-in-region 'identity)))
-     (assert (equal 4 result) t "line no not correct")
-
-     (setq result (rk/do-for-each-line-in-region (lambda (line) (number-to-string (length line)))))
-     (assert (equal '("2" "2" "1" "4") result) t "length of lines not correct")
-
-     (assert (equal "2\n2\n1\n4" (buffer-string)) t "buffer contents not ok")
-
-     (setq result (rk/do-for-each-line-in-region (lambda (line count) (number-to-string count))))
-     (assert (equal '("0" "1" "2" "3") result) t "call with count not ok"))))
-
-
-(ert-deftest rk/string-match-test ()
-  (let ((string "foo bar baz")
-        (regexp "\\w+ \\(\\w+\\) \\w+"))
-   (assert (equal (rk/string-match string regexp '(1)) '("bar")) t "list return")
-   (assert (equal (rk/string-match string regexp 1) "bar") t "single return")
-   (assert (equal (rk/string-match "foo" "zork" 1) nil) t "no match")))
-
-
-(ert-deftest rk/split-buffer-test ()
-  (rk-test-with-temp-buffer-do
-   "rk-split-buffer-test buffer"
-   (let ((buffer-content "foo\n------\nbar")
-         (create-file-call-n 0))
-     (insert buffer-content)
-     (flet ((rk/create-file (filename content) (progn
-                                                 (setq create-file-call-n (1+ create-file-call-n))
-                                                 (assert (string= filename "baz") t "file name not ok")
-                                                 (assert (string-match "foo\\|bar" content) t (concat "content not ok: " content)))))
-       (rk/split-buffer-and-save-parts "rk-split-buffer-test buffer" (lambda (content) "baz"))
-       (assert (equal 2 create-file-call-n) t "create file not called two times")))))
-
+  (defmacro rk/test-with-temp-buffer-do (buffer-name body)
+    `(unwind-protect
+         (with-current-buffer (get-buffer-create ,buffer-name)
+           ,body)
+      (kill-buffer ,buffer-name)))
+  
+  (ert-deftest rk/activate-region-test ()
+    (with-temp-buffer
+      (insert "foo\nbar\nbaz")
+      (rk/activate-region 2 6)
+      (should (equal "oo\nb" (buffer-substring-no-properties (region-beginning) (region-end))))))
+  
+  (ert-deftest rk/current-line-string-test ()
+    (with-temp-buffer
+      (insert "foo bar\nbaz\nzork")
+      (goto-line 2) (forward-char 1)
+      (should (equal "baz" (rk/current-line-string)))))
+  
+  ;; (rk/do-for-each-line-test)
+  (ert-deftest rk/do-for-each-line-test ()
+    (with-temp-buffer
+     "--rk-do-for-each-line-test-buffer--"
+     (let (result)
+       ;; start: 1 end: 12 + 1
+       (insert "ha\nll\no\nwelt")
+       (goto-char (+ 12 1))
+  
+       (setq result (rk/do-for-each-line-in-region 'identity))
+       (assert (equal '("ha" "ll" "o" "welt") result) t "no lines without setting mark")
+  
+       (set-mark 1)
+  
+       (setq result (length (rk/do-for-each-line-in-region 'identity)))
+       (assert (equal 4 result) t "line no not correct")
+  
+       (setq result (rk/do-for-each-line-in-region (lambda (line) (number-to-string (length line)))))
+       (assert (equal '("2" "2" "1" "4") result) t "length of lines not correct")
+  
+       (assert (equal "2\n2\n1\n4" (buffer-string)) t "buffer contents not ok")
+  
+       (setq result (rk/do-for-each-line-in-region (lambda (line count) (number-to-string count))))
+       (assert (equal '("0" "1" "2" "3") result) t "call with count not ok"))))
+  
+  
+  (ert-deftest rk/string-match-test ()
+    (let ((string "foo bar baz")
+          (regexp "\\w+ \\(\\w+\\) \\w+"))
+     (assert (equal (rk/string-match string regexp '(1)) '("bar")) t "list return")
+     (assert (equal (rk/string-match string regexp 1) "bar") t "single return")
+     (assert (equal (rk/string-match "foo" "zork" 1) nil) t "no match")))
+  
+  
+  (ert-deftest rk/split-buffer-test ()
+    (rk/test-with-temp-buffer-do
+     "rk-split-buffer-test buffer"
+     (let ((buffer-content "foo\n------\nbar")
+           (create-file-call-n 0))
+       (insert buffer-content)
+       (flet ((rk/create-file (filename content) (progn
+                                                   (setq create-file-call-n (1+ create-file-call-n))
+                                                   (assert (string= filename "baz") t "file name not ok")
+                                                   (assert (string-match "foo\\|bar" content) t (concat "content not ok: " content)))))
+         (rk/split-buffer-and-save-parts "rk-split-buffer-test buffer" (lambda (content) "baz"))
+         (assert (equal 2 create-file-call-n) t "create file not called two times")))))
+  
 #+END_SRC
 * org-mode
 
