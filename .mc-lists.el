@@ -24,6 +24,7 @@
         end-of-buffer
         end-of-visual-line
         ess-smart-comma
+        eval-last-sexp
         eval-region
         fill-paragraph
         forward-sentence
@@ -51,14 +52,18 @@
         org-shiftright
         org-todo
         org-yank
+        paredit-backward
         paredit-backward-delete
         paredit-backward-up
         paredit-close-round
         paredit-comment-dwim
         paredit-doublequote
+        paredit-forward
         paredit-forward-delete
+        paredit-forward-kill-word
         paredit-newline
         paredit-open-round
+        paredit-splice-sexp-killing-backward
         rk-run-tests
         rk/delete-backward-line
         rk/eval-and-replace-last-sexp
@@ -106,4 +111,5 @@
         scroll-right
         set-rectangular-region-anchor
         toggle-truncate-lines
+        wgrep-finish-edit
         ))
