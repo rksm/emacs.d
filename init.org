@@ -32,6 +32,8 @@ ELPA/marmalade repos.
            helm ac-helm
            wgrep
            magit
+           ;; programming
+           slime
            ;; weby stuff
            markdown-mode
            ;; js
@@ -57,6 +59,7 @@ ELPA/marmalade repos.
 ** site-lisp
 #+BEGIN_SRC elisp
   (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "fringemark"))
+  (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "swank-js"))
 #+END_SRC
 * generic settings
 ** system-related
@@ -1572,6 +1575,321 @@ Suppress GUI features
     (add-hook 'erc-text-matched-hook 'rk/erc-nick-mentioned-hook))
 #+END_SRC
 * javascript
+** swank-js
+*** load
+#+BEGIN_SRC elisp
+  (require 'slime-autoloads)
+  (slime-setup '(slime-repl slime-js))
+  (require 'slime-js)
+  (setq slime-net-coding-system 'utf-8-unix)
+#+END_SRC
+*** swank-js nodes server commands
+#+BEGIN_SRC elisp :tangle no
+  (defvar rk/slime-js-node-buffer-name nil
+    "node.js buffer for running slime-js socket.io server")
+  
+  (defun rk/slime-js-kill-node ()
+    (let ((buf (get-buffer rk/slime-js-node-buffer-name)))
+      (when buf
+        (while (get-buffer-process buf)
+          (kill-process (get-buffer-process buf))
+          (sit-for 0 400))
+        (kill-buffer buf))))
+  
+  (defun rk/slime-js-start-node ()
+    (setq rk/slime-js-node-buffer-name "node slime-js")
+    (rk/slime-js-kill-node)
+    (async-shell-command
+     (concat "node ~/.emacs.d/site-lisp/swank-js/swank.js")
+     (get-buffer-create rk/slime-js-node-buffer-name)))
+  
+  (defun rk/slime-js-start ()
+    (interactive)
+    (let ((buf (current-buffer))
+          (win (get-buffer-window)))
+      (rk/slime-js-start-node)
+      (sleep-for 0 600)              ; wait for node to startup
+      (slime-connect "127.0.0.1" 4005 'utf-8-unix)
+      (run-with-timer 0.3 nil 'set-window-buffer win buf)))
+  
+  (defun rk/slime-js-stop ()
+    (interactive)
+    (let ((node-buf (get-buffer rk/slime-js-node-buffer-name))
+          (slime-buf (get-buffer "*slime-repl JS*"))
+          (slime-log-buf (get-buffer "*slime-events*")))
+      (rk/slime-js-kill-node)
+      (dolist (buf (list slime-buf slime-log-buf))
+        (when buf (kill-buffer buf)))))
+#+END_SRC
+
+*** slime-js JS evaluation extensions
+for sending arbitrary expressions, inspecting, printing, etc.
+
+#+BEGIN_SRC elisp :tangle no
+  (defun rk/slime-js-send-start-end (from to &optional transform-string-func callback)
+    "send the js code between start and end to the slime REPL"
+    (save-excursion
+      (slime-flash-region from to 0.7)
+      (setq transform-string-func (or transform-string-func 'identity))
+      (lexical-let* ((string-to-send (funcall transform-string-func
+                                              (buffer-substring-no-properties from to)))
+                     (cb callback))
+        (rk/slime-js-eval-with-custom-context
+         string-to-send
+         `(lambda (v)
+            ,(when *rk/slime-js-print-result-p* '(rk/slime-js-print-result v))
+            ,(when cb `(funcall ,cb (plist-get v :values))))))))
+  
+  (defun rk/slime-js-send-region-or-last-sexp (region-start region-end &optional transform-string-func callback)
+    "Send the previous sexp to the slime repl"
+    (interactive "r")
+    (let ((start (if (region-active-p) region-start (line-beginning-position)))
+          (end (if (region-active-p) region-end (line-end-position))))
+      (rk/slime-js-send-start-end start end transform-string-func callback)))
+  
+  (defun rk/slime-js-send-defun ()
+    (interactive)
+    (save-excursion
+      (let (*rk/slime-js-print-result-p*)
+        (js3-mark-defun)
+        (call-interactively 'rk/slime-js-send-region-or-last-sexp)
+        ;; (call-interactively slime-js-send-region)
+        )))
+  
+  (defvar rk/slime-js-inspect-code
+    "var inspectFunc = (function(exprs) {
+      for (var j = 0; j < exprs.length; j++) {
+          if (eval('typeof ' + exprs[j]) === 'function') return eval(exprs[j]);
+      };
+  })(['$i', 'i', 'inspect', '(function(o) { return o; })']);inspectFunc(%s);"
+    "The JavaScript code to run for creating an inspect
+         representation of an evaluated expression.")
+  
+  (defun rk/slime-js-send-and-inspect (region-start region-end)
+    "Send the previous sexp to the slime repl"
+    (interactive "r")
+    (rk/slime-js-send-region-or-last-sexp
+     region-start region-end
+     (lambda (string) (format rk/slime-js-inspect-code string))))
+  
+  (makunbound 'rk/slime-js-send-string-sync)
+  (defun rk/slime-js-send-string-sync (string)
+    "Send and eval the string, wait for result."
+    (interactive "sJS expression: ")
+    (lexical-let* (sync-result
+                   (start (current-time))
+                   (timeout (seconds-to-time 1)))
+      (rk/slime-js-eval-with-custom-context
+       string
+       (lambda (v)
+         (setq sync-result (plist-get v :values))))
+      (while (and (not sync-result) (time-less-p (time-since start) timeout))
+        (sit-for 0.05))
+      sync-result))
+  
+  (defun rk/slime-js-send-buffer ()
+    "Send the entire buffer to the slime repl"
+    (interactive)
+    (rk/slime-js-send-start-end (point-min) (point-max)))
+  
+  (defcustom *rk/slime-js-print-result-p* t
+    "whether the result of the evaluated javascript is
+  to be inserted in the current buffer"
+    :group 'slime-js)
+  
+  (make-variable-buffer-local '*rk/slime-js-print-result-p*)
+  
+  (defun rk/slime-js-toggle-print-result ()
+    (interactive)
+    (progn
+      (setq *rk/slime-js-print-result-p* (not *rk/slime-js-print-result-p*))
+      (message (concat "printing JS is " (if *rk/slime-js-print-result-p* "on" "off")))))
+  
+  (defun rk/slime-js-print-result (result)
+    (when *rk/slime-js-print-result-p*
+      (let (deactivate-mark)
+        (let ((result (plist-get result :values)))
+          (push-mark nil t t)
+          (insert (or result ""))
+          (goto-char (point))))))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; custom "this", set what this is bound to when eval'ing expressions with
+  ;; slime-js
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (defvar rk/slime-js-doit-context-expr-history nil)
+  (defvar rk/slime-js-doit-context-expr nil
+    "nil for not using a doit-context or something like 'that'.")
+  
+  (defun rk/slime-js-wrap-expr-for-doit-context-func (eval-expr doit-context-expr)
+    "wraps the `eval-expr' in a directly called JS function bound
+  to `doit-context-expr' and returns the result of the last
+  statement of `eval-expr'."
+    (if (equal "" eval-expr)
+        nil
+      (with-temp-buffer
+        (insert eval-expr)
+        (beginning-of-buffer)
+        (let* ((ast (js3-parse))
+               (last-expr (car (last (js3-node-child-list ast))))
+               (last-expr-start (js3-node-abs-pos last-expr)))
+          (goto-char last-expr-start)
+          (insert "return ")
+          (end-of-buffer)
+          (insert (format "\n}).call(%s);" doit-context-expr))
+          (beginning-of-buffer)
+          (insert ";(function() {\n")
+          (buffer-substring-no-properties (point-min) (point-max))))))
+  
+  (defun rk/slime-js-set-doit-context (doit-expr)
+    "Set an expression like 'that' and when eval'ing you can use
+  'this' in a toplevel form that will refer to 'that'."
+    (interactive (list (read-from-minibuffer
+                        "this expr: "
+                        (car rk/slime-js-doit-context-expr-history) nil nil
+                        'rk/slime-js-doit-context-expr-history)))
+    (setq rk/slime-js-doit-context-expr (if (equal "" doit-expr) nil doit-expr)))
+  
+  (defun rk/slime-js-eval-with-custom-context (expr &optional cont)
+    "Inserts `rk/slime-js-wrap-expr-for-doit-context-func' and
+  calls `slime-js-eval'."
+    (if (or (not expr) (equal "" expr))
+        (message "js eval expr empty")
+      (slime-js-eval
+       (if rk/slime-js-doit-context-expr
+           (rk/slime-js-wrap-expr-for-doit-context-func expr rk/slime-js-doit-context-expr)
+         expr)
+       cont)))
+#+END_SRC
+
+*** slime-js lively
+these functions are used to implement something like the `lively' module
+does for elisp: mark a JS expression in a buffer and provide ways of
+evaling it
+
+#+BEGIN_SRC elisp :tangle no
+  (require 'cl)                           ; for `intersection'
+  
+  (defvar rk/slime-js-overlay-overlays nil
+    "overlays that will eval the expression they are \"on\"")
+  
+  (defun rk/slime-js-overlay-make-or-update ()
+    "Make the region evalable."
+    (interactive)
+    (if (region-active-p)
+        (call-interactively 'rk/slime-js-overlay-make-overlay)
+      (rk/slime-js-overlay-eval-all)))
+  
+  (defun rk/slime-js-overlay-make-overlay (start end)
+    "Make the region evalable."
+    (interactive "r")
+    (let ((overlays-in-region (intersection (overlays-in start end) rk/slime-js-overlay-overlays)))
+      (unless overlays-in-region
+        (let ((o (make-overlay start end)))
+          (add-to-list 'rk/slime-js-overlay-overlays o)
+          (overlay-put o 'face '(:foreground "white" :background "tomato"))
+          (rk/slime-js-overlay-eval o)
+          o))))
+  
+  (defun rk/slime-js-overlay-remove-overlay-at-point ()
+    (interactive)
+    (let ((overlays (intersection (overlays-at (point)) rk/slime-js-overlay-overlays)))
+      (rk/slime-js-overlay-remove-overlays overlays)))
+  
+  (defun rk/slime-js-overlay-remove-overlay (o)
+    "remove overlay and make sure its not in the eval-overlay list anymore"
+    (setq rk/slime-js-overlay-overlays (delq o rk/slime-js-overlay-overlays))
+    (delete-overlay o))
+  
+  (defun rk/slime-js-overlay-remove-overlays (&optional overlays)
+    "remove given or all overlays"
+    (interactive)
+    (let ((overlays-to-remove (or overlays rk/slime-js-overlay-overlays)))
+      (dolist (o overlays-to-remove)
+        (rk/slime-js-overlay-remove-overlay o))))
+  
+  (defun rk/slime-js-overlay-eval-all ()
+    (interactive)
+    (dolist (o rk/slime-js-overlay-overlays)
+      (rk/slime-js-overlay-eval o)))
+  
+  (defun rk/slime-js-overlay-eval (overlay)
+    (lexical-let ((o overlay))
+      (with-buffer (overlay-buffer o)
+        (rk/slime-js-eval-with-custom-context
+         (buffer-substring-no-properties (overlay-start o) (overlay-end o))
+         (lambda (eval-result)
+           (let ((val (plist-get eval-result :values)))
+             (overlay-put o 'display (format "%s" val))))))))
+#+END_SRC
+
+*** slime-js auto-complete
+#+BEGIN_SRC elisp :tangle no
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; slime-js auto-complete extension for evaluating expressions and using JS
+  ;; reflection for ac candidates
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (require 'ac-slime)
+  (require 'init-text-nav) ;; FIXME for `rk/ac-slime-js-prev-partial-sexp'
+  
+  (defun rk/ac-slime-js-valid-start (string)
+    (string-match-p "[0-9a-zA-Z_$\\.]" string))
+  
+  (defun rk/ac-slime-js-prev-partial-sexp ()
+    "get the expression before (point)"
+    (let* ((start (string (preceding-char)))
+           (paren-or-quote (string-match-p "[\\)\"\']" start)))
+      (cond
+       ((rk/ac-slime-js-valid-start start)
+        (goto-char (1- (point)))
+        (point))
+       (paren-or-quote (rk/smart-nav-backward) (point)))))
+  
+  (defun rk/ac-slime-js-prefix ()
+    (interactive)
+    (or (when (rk/ac-slime-js-valid-start (string (preceding-char)))
+          (save-excursion
+            (while (rk/ac-slime-js-prev-partial-sexp))
+            (point))) (point)))
+  
+  (defun rk/ac-slime-js-prefix-string ()
+    "Mainly used for debugging"
+    (interactive)
+    (buffer-substring-no-properties (rk/ac-slime-js-prefix) (point)))
+  
+  (defun rk/transform-simple-completion ()
+    ;; (slime-simple-completions ac-prefix)
+    (let ((result (slime-simple-completions ac-prefix)))
+      (destructuring-bind (completions partial) result
+        ;; completions
+        (let ((transformed (mapcar
+                            (lambda (s) (substring s (length ac-prefix)))
+                            completions)))
+          transformed))))
+  
+  ;; (makunbound 'ac-source-slime-js)
+  (defun rk/setup-slime-js-ac-source ()
+    (ac-define-source slime-js
+      '((candidates . rk/transform-simple-completion)
+        (prefix     . rk/ac-slime-js-prefix)
+        (match      . (lambda (prefix candidates)
+                        (mapcar (lambda (candidate) (concat prefix candidate)) candidates)))
+        (requires   . 0))))
+  
+  (rk/setup-slime-js-ac-source)
+#+END_SRC
+
+*** hook stuff up
+#+BEGIN_SRC elisp
+  (eval-after-load "init-javascript"
+    '(progn
+       (add-mode-hook-for-js (lambda () (slime-js-minor-mode 1)))
+       ;; (add-mode-hook-for-js (lambda () (add-to-list 'ac-sources 'ac-source-slime-js)))
+       ))
+#+END_SRC
+
 ** js3
 #+BEGIN_SRC elisp
   
@@ -1635,8 +1953,7 @@ Suppress GUI features
       (ad-activate 'js3-beginning-of-line)
       ;; (ad-activate 'js3-mode-create-imenu-index)
   
-      (modify-syntax-entry ?_ "w" js3-mode-syntax-table)
-      (rk/setup-js3-keys)))
+      (modify-syntax-entry ?_ "w" js3-mode-syntax-table)))
   
   ;; (set-default 'js3-indent-level 4)
   
@@ -1769,10 +2086,6 @@ Suppress GUI features
           (setq new-pos (js3-node-abs-pos (js3-node-get-enclosing-scope (js3-node-at-point)))))
       ;; (if this-command-keys-shift-translated (message "fooo"))
       (goto-char new-pos)))
-  
-  (defun rk/setup-js3-keys ()
-    ""
-    (define-key js3-mode-map (kbd "C-M-u") 'rk/js3-backward-up))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
@@ -2307,6 +2620,104 @@ Suppress GUI features
         haskell-program-name "ghci \"+.\""
         haskell-indent-offset 2)))
   
+#+END_SRC
+
+** javascript
+*** js3
+#+BEGIN_SRC elisp
+  (defun rk/setup-js3-keys ()
+    ""
+    (define-key js3-mode-map (kbd "C-M-u") 'rk/js3-backward-up))
+  
+  (eval-after-load "js3"
+    '(rk/setup-js3-keys))
+#+END_SRC
+
+*** slime-js
+#+BEGIN_SRC elisp :tangle no
+  ;; -=-=-=-=-
+  ;; css setup
+  ;; -=-=-=-=-
+  ;; (defun rk/slime-js-css-keys ()
+  ;;   (define-key css-mode-map (kbd "M-C-x") 'slime-js-refresh-css)
+  ;;   (define-key css-mode-map (kbd "M-SPC") 'slime-js-embed-css)
+  ;;   (define-key css-mode-map (kbd "s-d") 'slime-js-embed-css))
+  
+  ;; -=-=-=-=-
+  ;; js setup
+  ;; -=-=-=-=-
+  ;; (defun add-slime-js-keys ()
+  ;;   (condition-case ex
+  ;;       (progn
+  ;;         (local-set-key (kbd "C-x C-e") 'rk/slime-js-send-region-or-last-sexp)
+  ;;         (local-set-key (kbd "s-d") (lambda (p1 p2) (interactive "r")
+  ;;                                      (let ((*rk/slime-js-print-result-p* nil))
+  ;;                                        (rk/slime-js-send-region-or-last-sexp p1 p2))))
+  ;;         (local-set-key (kbd "s-p") (lambda (p1 p2) (interactive "r")
+  ;;                                      (let ((*rk/slime-js-print-result-p* t))
+  ;;                                        (rk/slime-js-send-region-or-last-sexp p1 p2))))
+  ;;         (local-set-key (kbd "s-i") 'rk/slime-js-send-and-inspect)
+  ;;         (local-set-key (kbd "s-U") 'rk/slime-js-overlay-make-or-update)
+  ;;         (local-set-key (kbd "s-S") 'rk/slime-js-overlay-remove-overlay-at-point)
+  ;;         (local-set-key (kbd "s-A") (lambda () (interactive)
+  ;;                                      (slime-eval-buffer)
+  ;;                                      (run-with-timer 0.3 nil 'rk/slime-js-overlay-eval-all)))
+  ;;         (local-set-key (kbd "M-SPC") 'rk/slime-js-send-defun)
+  ;;         (local-set-key (kbd "C-c b") (lambda () (interactive)
+  ;;                                        (let ((*rk/slime-js-print-result-p* nil))
+  ;;                                          (rk/slime-js-send-buffer)))))
+  ;;     ('error (message (format "Caught exception: [%s]" ex)))))
+  
+  
+  (define-key js3-mode-map (kbd "C-x C-e") 'rk/slime-js-send-region-or-last-sexp)
+  (define-key js3-mode-map (kbd "s-d") (lambda (p1 p2) (interactive "r")
+                               (let ((*rk/slime-js-print-result-p* nil))
+                                 (rk/slime-js-send-region-or-last-sexp p1 p2))))
+  (define-key js3-mode-map (kbd "s-p") (lambda (p1 p2) (interactive "r")
+                               (let ((*rk/slime-js-print-result-p* t))
+                                 (rk/slime-js-send-region-or-last-sexp p1 p2))))
+  (define-key js3-mode-map (kbd "s-i") 'rk/slime-js-send-and-inspect)
+  ;; (define-key js3-mode-map (kbd "s-U") 'rk/slime-js-overlay-make-or-update)
+  ;; (define-key js3-mode-map (kbd "s-S") 'rk/slime-js-overlay-remove-overlay-at-point)
+  ;; (define-key js3-mode-map (kbd "s-A") (lambda () (interactive)
+  ;;                              (slime-eval-buffer)
+  ;;                              (run-with-timer 0.3 nil 'rk/slime-js-overlay-eval-all)))
+  (define-key js3-mode-map (kbd "M-SPC") 'rk/slime-js-send-defun)
+  (define-key js3-mode-map (kbd "C-c b") (lambda () (interactive)
+                                 (let ((*rk/slime-js-print-result-p* nil))
+                                   (rk/slime-js-send-buffer))))
+  
+  ;; (eval-after-load "init-javascript"
+  ;;   '(progn
+  ;;      (add-hook 'css-mode-hook 'rk/slime-js-css-keys)
+  ;;      (add-mode-hook-for-js 'add-slime-js-keys t)))
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  ;;; javascript stuff
+  ;; (defun rk/add-js3-keys ()
+  ;;   (local-set-key (kbd "C-c i") 'rk/pretty-json)
+  ;;   (local-set-key (kbd "s-D") 'js3-mark-defun)
+  ;;   (local-set-key (kbd "M-D") 'rk/lively-try-eval-def)
+  ;;   (local-set-key (kbd "s-B") 'rk/lively-browse-object-scripts)
+  ;;   ;; pressing shift with C-a/e should automatically enable transient mark mode
+  ;;   ;; but in recent js3 version this does not work anymore
+  ;;   (local-set-key (kbd "C-S-e") (lambda () (interactive)
+  ;;                                  (unless (region-active-p)
+  ;;                                    (call-interactively 'set-mark-command))
+  ;;                                  (call-interactively 'js3-end-of-line)))
+  ;;   (local-set-key (kbd "C-S-a") (lambda () (interactive)
+  ;;                                  (unless (region-active-p)
+  ;;                                    (call-interactively 'set-mark-command))
+  ;;                                  (call-interactively 'js3-beginning-of-line)))
+  ;;   (global-set-key (kbd "<end>") 'js3-end-of-line)
+  ;;   (global-set-key (kbd "<home>") 'js3-beginning-of-line)
+  ;;   (local-set-key (kbd "C-c C-p") 'rk/js3-node-name-at-point)
+  ;;   (local-set-key (kbd "C-M-u") 'rk/js3-backward-up))
+  
+  ;; (eval-after-load 'js3-mode
+  ;;   `(progn
+  ;;      (add-hook 'js3-mode-hook 'rk/add-js3-keys)))
 #+END_SRC
 
 * mode mappings
