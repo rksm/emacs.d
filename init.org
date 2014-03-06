@@ -124,6 +124,12 @@ ELPA/marmalade repos.
    (setq save-place t)
    (require 'saveplace)
    (setq save-place-file "~/.emacs.d/saved-places")
+  
+  ;;; enable disabled commands
+  (put 'narrow-to-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+  
 #+END_SRC
 
 ** snippets
