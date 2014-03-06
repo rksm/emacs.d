@@ -21,7 +21,8 @@ ELPA/marmalade repos.
 
   ;; (makunbound 'my-packages)
   (defvar my-packages
-    '(dash dash-functional
+    '(dash dash-functional s
+           diminish
            iy-go-to-char
            ace-jump-mode
            multiple-cursors
@@ -64,6 +65,12 @@ ELPA/marmalade repos.
 (setq *is-carbon-emacs* (and *is-a-mac* (eq window-system 'mac)))
 (setq *is-cocoa-emacs* (and *is-a-mac* (eq window-system 'ns)))
 #+END_SRC
+
+** emacs API
+#+BEGIN_SRC elisp
+  (require 'dash)
+  (require 's)
+ #+END_SRC
 
 ** emacs interaction
 #+BEGIN_SRC emacs-lisp
@@ -2322,6 +2329,27 @@ Suppress GUI features
     (add-to-list 'auto-mode-alist '("\\.ghci$" . 'haskell-mode))
 
 #+END_SRC
+* mode-line
+#+BEGIN_SRC elisp
+  ;; Diminish modeline clutter
+  (require 'diminish)
+  (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+  (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
+  (eval-after-load "helm" '(diminish 'helm-mode))
+  (eval-after-load "eldoc" '(diminish 'eldoc-mode))
+  
+  
+  (defmacro rename-modeline (package-name mode new-name)
+    `(eval-after-load ,package-name
+       '(defadvice ,mode (after rename-modeline activate)
+          (setq mode-name ,new-name))))
+  
+  (rename-modeline "js2-mode" js2-mode "js2")
+  (rename-modeline "js3" js3-mode "js3")
+  (rename-modeline "clojure-mode" clojure-mode "clj")
+  (rename-modeline "lisp-mode" emacs-lisp-mode "elisp")
+#+END_SRC
+
 * theming / colors
 ** theme
 #+BEGIN_SRC elisp
