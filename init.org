@@ -67,12 +67,6 @@ ELPA/marmalade repos.
 (setq *is-cocoa-emacs* (and *is-a-mac* (eq window-system 'ns)))
 #+END_SRC
 
-** emacs API
-#+BEGIN_SRC elisp
-  (require 'dash)
-  (require 's)
- #+END_SRC
-
 ** emacs interaction
 #+BEGIN_SRC emacs-lisp
    (setq-default blink-cursor-delay 0
@@ -313,6 +307,20 @@ ELPA/marmalade repos.
 #+END_SRC
 
 * useful functions
+** emacs API
+#+BEGIN_SRC elisp
+  (require 'dash)
+  (require 's)
+ #+END_SRC
+
+** navigation
+#+BEGIN_SRC elisp
+  (defun rk/forward-to-match (re)
+    ""
+    (re-search-forward re (point-max) t)
+    (goto-char (match-beginning 0)))
+#+END_SRC
+
 ** strings and list processing
 #+BEGIN_SRC emacs-lisp
   (defun rk/filter (condp lst)
