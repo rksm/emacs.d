@@ -54,6 +54,7 @@
         org-yank
         paredit-backward
         paredit-backward-delete
+        paredit-backward-kill-word
         paredit-backward-up
         paredit-close-round
         paredit-comment-dwim
