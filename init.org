@@ -37,6 +37,7 @@ ELPA/marmalade repos.
            ;; js
            js3-mode
            ;; lispy things
+           elisp-slime-nav
            paredit
            clojure-mode clojure-test-mode cider troncle clojure-cheatsheet
            ;; erc
@@ -1299,6 +1300,14 @@ Suppress GUI features
       (eval-region start end t)))
   
   (define-key emacs-lisp-mode-map (kbd "M-S-SPC") 'rk/eval-defun-flash)
+#+END_SRC
+
+**** elisp
+#+BEGIN_SRC elisp
+  ;; Elisp go-to-definition with M-. and back again with M-,
+  (autoload 'elisp-slime-nav-mode "elisp-slime-nav")
+  (add-hook 'emacs-lisp-mode-hook (lambda () (elisp-slime-nav-mode t)))
+  (eval-after-load 'elisp-slime-nav '(diminish 'elisp-slime-nav-mode))
 #+END_SRC
 
 **** clojure
