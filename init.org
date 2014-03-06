@@ -1906,6 +1906,7 @@ Suppress GUI features
   
   (global-set-key (kbd "C-c j") 'join-line)
   (global-set-key (kbd "C-c J") (lambda () (interactive) (join-line 1)))
+  (global-set-key (kbd "M-j") (lambda () (interactive) (join-line -1)))
   
   (defun rk/newline-above ()
     ""
