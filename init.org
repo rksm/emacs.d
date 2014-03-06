@@ -2188,8 +2188,12 @@ evaling it
   ;; Activate occur easily inside isearch
   (define-key isearch-mode-map (kbd "C-o")
     (lambda () (interactive)
-      (let ((case-fold-search isearch-case-fold-search))
-        (occur (if isearch-regexp isearch-string (regexp-quote isearch-string))))))
+      (let ((case-fold-search isearch-case-fold-search)
+            (current-line (line-number-at-pos)))
+        (occur (if isearch-regexp isearch-string (regexp-quote isearch-string)))
+        (isearch-exit)
+        (with-buffer "*Occur*"
+          (rk/forward-to-match (format "^\\s-*%s:" current-line))))))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
