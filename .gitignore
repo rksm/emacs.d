@@ -13,3 +13,5 @@ eshell/
 ac-comphist.dat
 cider-history
 helm-adaptive-history
+/projectile-bookmarks.eld
+/projectile.cache
