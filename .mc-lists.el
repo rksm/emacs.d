@@ -22,6 +22,7 @@
         duplicate-line
         electric-pair-backward-delete-char
         end-of-buffer
+        end-of-defun
         end-of-visual-line
         ess-smart-comma
         eval-last-sexp
@@ -78,6 +79,7 @@
         rk/transpose-region-active-with-region-1
         rk/transpose-region-remember-region-1
         sgml-close-tag
+        sgml-slash
         sh-assignment
         textmate-shift-left
         textmate-shift-right
