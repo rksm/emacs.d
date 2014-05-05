@@ -32,6 +32,9 @@ ELPA/marmalade repos.
            helm ac-helm
            wgrep
            magit
+           projectile
+           helm-projectile
+           perspective
            ;; programming
            slime
            ;; weby stuff
@@ -1463,31 +1466,31 @@ Suppress GUI features
             :sources '(helm-c-source-imenu
                        helm-c-source-occur)
             :buffer "*helm symbols*")))
-
-  (defvar rk/helm-c-source-projectf
-    '((name . "Project files")
-      (disable-shortcuts) ;; Needed for filenames with capitals letters.
-      (candidates . (lambda () (with-helm-current-buffer
-                            (let ((dir (rk/project-root)))
-                              (mapcar (lambda (ea) (concat dir ea)) (rk/project-files dir 3))))))
-      (type . file))
-    "Uses `rk/project-files' as input.")
-
-  (defun rk/helm-projectf ()
-    (interactive)
-    (helm :sources 'rk/helm-c-source-projectf
-          :buffer "*helm project files*"))
-
+  
   (defun rk/helm-buffers-and-files ()
     (interactive)
-    (helm
-     :prompt "Switch to: "
-     :candidate-number-limit 20
-     :sources '(helm-source-buffers-list
-                rk/helm-c-source-projectf
-                helm-c-source-recentf
-                helm-c-source-bookmarks)))
+    (let ((helm-ff-transformer-show-only-basename nil))
+      (helm
+       :prompt "Switch to: "
+       :candidate-number-limit 20
+       :sources (-concat helm-projectile-sources-list
+                         '(helm-source-buffers-list
+                           helm-c-source-recentf
+                           helm-c-source-bookmarks)))))
+  
 #+END_SRC
+* projectile
+#+BEGIN_SRC elisp
+  (projectile-global-mode)
+  (setq projectile-indexing-method 'native)
+  (setq projectile-enable-caching t)
+  
+  ;;; projectile everywhere
+  ;; (setq projectile-require-project-root nil)
+  
+  ;; (global-set-key (kbd "C-c h") 'helm-projectile)
+#+END_SRC
+
 * flycheck
 #+BEGIN_SRC elisp
   (add-hook 'after-init-hook #'global-flycheck-mode)
