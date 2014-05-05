@@ -2283,19 +2283,17 @@ evaling it
   ;; duplicate line
   (defun duplicate-line (arg)
     "Duplicates the current line and inserts it above. If called
-  with prefix `arg' inserts lien below"
+  with prefix `arg' inserts line below"
     (interactive "P")
-    (message (prin1-to-string arg))
-    (save-excursion
-      (let ((line-text (buffer-substring-no-properties
-                        (line-beginning-position)
-                        (line-end-position))))
-        (if arg (move-end-of-line 1) (move-beginning-of-line 1))
-        (newline)
-        (unless arg (previous-line))
-        (insert line-text))))
-  
-  (global-set-key (kbd "C-c p") 'duplicate-line)
+    (rk/with-active-region-or-line start end
+      (let (deactivate-mark
+            (content (buffer-substring-no-properties start end)))
+        (save-excursion
+          (if arg (move-end-of-line 1) (move-beginning-of-line 1))
+          (insert content)
+          (newline)
+          (unless arg (previous-line))))
+      (rk/activate-region start end)))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
