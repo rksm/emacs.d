@@ -1468,16 +1468,21 @@ Suppress GUI features
                        helm-c-source-occur)
             :buffer "*helm symbols*")))
   
+  (require 'helm-projectile)
+  
   (defun rk/helm-buffers-and-files ()
     (interactive)
-    (let ((helm-ff-transformer-show-only-basename nil))
+    (let* ((helm-ff-transformer-show-only-basename nil)
+           (basic-sources '(helm-source-buffers-list
+                           helm-c-source-recentf
+                           helm-c-source-bookmarks))
+           (sources (if (projectile-project-p)
+                        (-concat helm-projectile-sources-list '(helm-c-source-bookmarks))
+                      basic-sources)))
       (helm
        :prompt "Switch to: "
        :candidate-number-limit 20
-       :sources (-concat helm-projectile-sources-list
-                         '(helm-source-buffers-list
-                           helm-c-source-recentf
-                           helm-c-source-bookmarks)))))
+       :sources sources)))
   
 #+END_SRC
 * projectile
