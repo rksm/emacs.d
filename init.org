@@ -44,7 +44,7 @@ ELPA/marmalade repos.
            ;; lispy things
            elisp-slime-nav
            paredit
-           clojure-mode clojure-test-mode cider troncle clojure-cheatsheet
+           clojure-mode clojure-test-mode cider clojure-cheatsheet
            ;; erc
            ;; znc ;; bouncer
            ;; haskellme
