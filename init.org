@@ -2773,6 +2773,8 @@ evaling it
     (autoload 'haskell-mode "haskell-mode" "Major mode for editing Haskell code." t)
     (add-to-list 'auto-mode-alist '("\\.ghci$" . 'haskell-mode))
 
+  
+    (add-to-list 'auto-mode-alist '("Dockerfile" . conf-mode))
 #+END_SRC
 * mode-line
 #+BEGIN_SRC elisp
