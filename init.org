@@ -1426,6 +1426,32 @@ Suppress GUI features
     (add-to-list 'ac-modes mode))
   
 #+END_SRC
+* projectile
+#+BEGIN_SRC elisp
+  (require 'projectile)
+  
+  (defun rk/remove-projectile-prefix ()
+    (setq minor-mode-map-alist
+          (-remove
+           (lambda (x) (eq (car x) 'projectile-mode))
+           minor-mode-map-alist)))
+  
+  (rk/remove-projectile-prefix)
+  
+  (setq projectile-keymap-prefix (kbd "C-c C-p"))
+  (projectile-global-mode)
+  ;; (lookup-key global-map (kbd "C-c p"))
+  
+  ;; (projectile-global-mode -1)
+  (setq projectile-indexing-method 'native)
+  (setq projectile-enable-caching t)
+  
+  ;;; projectile everywhere
+  ;; (setq projectile-require-project-root nil)
+  
+  ;; (global-set-key (kbd "C-c h") 'helm-projectile)
+  
+#+END_SRC
 * helm
 ** basics
 #+BEGIN_SRC emacs-lisp
@@ -1484,17 +1510,6 @@ Suppress GUI features
        :candidate-number-limit 20
        :sources sources)))
   
-#+END_SRC
-* projectile
-#+BEGIN_SRC elisp
-  (projectile-global-mode)
-  (setq projectile-indexing-method 'native)
-  (setq projectile-enable-caching t)
-  
-  ;;; projectile everywhere
-  ;; (setq projectile-require-project-root nil)
-  
-  ;; (global-set-key (kbd "C-c h") 'helm-projectile)
 #+END_SRC
 
 * flycheck
@@ -2285,6 +2300,7 @@ evaling it
           (unless arg (previous-line))))
       (rk/activate-region start end)))
   
+  (global-set-key (kbd "C-c p") 'duplicate-line)
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
   ;;; remove until line start
