@@ -25,6 +25,7 @@ ELPA/marmalade repos.
            diminish
            iy-go-to-char
            ace-jump-mode
+           ace-window
            multiple-cursors
            expand-region
            move-text
@@ -2366,7 +2367,9 @@ evaling it
   ;;; ace
   (require 'ace-jump-mode)
   (global-set-key (kbd "s-j") 'ace-jump-mode)
-  (global-set-key (kbd "s-J") 'ace-jump-mode-pop-mark)
+  (global-set-key (kbd "C-x j") 'ace-jump-mode)
+  (global-set-key (kbd "s-J") 'ace-window)
+  (global-set-key (kbd "C-x J") 'ace-window)
   (set-default 'ace-jump-mode-submode-list '(ace-jump-char-mode
                                              ace-jump-word-mode
                                              ace-jump-line-mode))
