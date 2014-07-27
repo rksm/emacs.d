@@ -2,10 +2,8 @@
 
 ** load path, etc.
 #+BEGIN_SRC emacs-lisp
-  ;; emacs-major-version
-  ;; emacs-minor-version
-  ;; (emacs-version)
-  ;(add-to-list 'load-path (expand-file-name "~/.emacs.d"))
+  (defun rk/find-load-dir-matching (re)
+    (-find (lambda (el) (s-matches? re el)) load-path))
 #+END_SRC
 
 ** elpa
@@ -1602,7 +1600,24 @@ Suppress GUI features
 * javascript
 ** swank-js
 *** load
-#+BEGIN_SRC elisp
+#+BEGIN_SRC elisp :tangle no
+  (defvar rk/swank-js-dir (rk/find-load-dir-matching "swank-js$"))
+  (defvar rk/slime-dir (rk/find-load-dir-matching "/slime-[0-9\.]+$"))
+  
+  (defun rk/ensure-swank-slime-link ()
+    (let* ((swank-el (s-join "/" (list rk/swank-js-dir "slime-js.el")))
+           (swank-el-link (s-join "/" (list rk/slime-dir "contrib" "slime-js.el"))))
+      (make-symbolic-link swank-el swank-el-link t)))
+  
+  (defun rk/npm-install-swank-js ()
+    (let ((npm-ls (shell-command-to-string (s-lex-format "cd ${rk/swank-js-dir}; npm list --depth 1"))))
+      (when (s-matches? "UNMET DEPENDENCY" npm-ls)
+        (message "swank-js node package needs to be installed, installing...")
+        (shell-command-to-string (s-lex-format "cd ${rk/swank-js-dir}; npm install")))))
+  
+  (rk/ensure-swank-slime-link)
+  (rk/npm-install-swank-js)
+  
   (require 'slime-autoloads)
   (slime-setup '(slime-repl slime-js))
   (require 'slime-js)
@@ -1857,7 +1872,8 @@ evaling it
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
   (require 'ac-slime)
-  (require 'init-text-nav) ;; FIXME for `rk/ac-slime-js-prev-partial-sexp'
+  (load-file (s-concat user-emacs-directory "init-text-nav.el"))
+  ;; (require 'init-text-nav) ;; FIXME for `rk/ac-slime-js-prev-partial-sexp'
   
   (defun rk/ac-slime-js-valid-start (string)
     (string-match-p "[0-9a-zA-Z_$\\.]" string))
@@ -2657,49 +2673,31 @@ evaling it
   ;;   (define-key css-mode-map (kbd "M-SPC") 'slime-js-embed-css)
   ;;   (define-key css-mode-map (kbd "s-d") 'slime-js-embed-css))
   
-  ;; -=-=-=-=-
-  ;; js setup
-  ;; -=-=-=-=-
-  ;; (defun add-slime-js-keys ()
-  ;;   (condition-case ex
-  ;;       (progn
-  ;;         (local-set-key (kbd "C-x C-e") 'rk/slime-js-send-region-or-last-sexp)
-  ;;         (local-set-key (kbd "s-d") (lambda (p1 p2) (interactive "r")
-  ;;                                      (let ((*rk/slime-js-print-result-p* nil))
-  ;;                                        (rk/slime-js-send-region-or-last-sexp p1 p2))))
-  ;;         (local-set-key (kbd "s-p") (lambda (p1 p2) (interactive "r")
-  ;;                                      (let ((*rk/slime-js-print-result-p* t))
-  ;;                                        (rk/slime-js-send-region-or-last-sexp p1 p2))))
-  ;;         (local-set-key (kbd "s-i") 'rk/slime-js-send-and-inspect)
-  ;;         (local-set-key (kbd "s-U") 'rk/slime-js-overlay-make-or-update)
-  ;;         (local-set-key (kbd "s-S") 'rk/slime-js-overlay-remove-overlay-at-point)
-  ;;         (local-set-key (kbd "s-A") (lambda () (interactive)
-  ;;                                      (slime-eval-buffer)
-  ;;                                      (run-with-timer 0.3 nil 'rk/slime-js-overlay-eval-all)))
-  ;;         (local-set-key (kbd "M-SPC") 'rk/slime-js-send-defun)
-  ;;         (local-set-key (kbd "C-c b") (lambda () (interactive)
-  ;;                                        (let ((*rk/slime-js-print-result-p* nil))
-  ;;                                          (rk/slime-js-send-buffer)))))
-  ;;     ('error (message (format "Caught exception: [%s]" ex)))))
+  (defun rk/add-slime-js-keys ()
+    (condition-case ex
+        (progn
+          (define-key js3-mode-map (kbd "C-x C-e") 'rk/slime-js-send-region-or-last-sexp)
+          (define-key js3-mode-map (kbd "s-d") (lambda (p1 p2) (interactive "r")
+                                                 (let ((*rk/slime-js-print-result-p* nil))
+                                                   (rk/slime-js-send-region-or-last-sexp p1 p2))))
+          (define-key js3-mode-map (kbd "s-p") (lambda (p1 p2) (interactive "r")
+                                                 (let ((*rk/slime-js-print-result-p* t))
+                                                   (rk/slime-js-send-region-or-last-sexp p1 p2))))
+          (define-key js3-mode-map (kbd "s-i") 'rk/slime-js-send-and-inspect)
+          (define-key js3-mode-map (kbd "s-U") 'rk/slime-js-overlay-make-or-update)
+          (define-key js3-mode-map (kbd "s-S") 'rk/slime-js-overlay-remove-overlay-at-point)
+          (define-key js3-mode-map (kbd "s-A") (lambda () (interactive)
+                                                 (slime-eval-buffer)
+                                                 (run-with-timer 0.3 nil 'rk/slime-js-overlay-eval-all)))
+          (define-key js3-mode-map (kbd "M-SPC") 'rk/slime-js-send-defun)
+          (define-key js3-mode-map (kbd "C-c b") (lambda () (interactive)
+                                                   (let ((*rk/slime-js-print-result-p* nil))
+                                                     (rk/slime-js-send-buffer)))))
+      ('error (message (format "Caught exception: [%s]" ex)))))
   
-  
-  (define-key js3-mode-map (kbd "C-x C-e") 'rk/slime-js-send-region-or-last-sexp)
-  (define-key js3-mode-map (kbd "s-d") (lambda (p1 p2) (interactive "r")
-                               (let ((*rk/slime-js-print-result-p* nil))
-                                 (rk/slime-js-send-region-or-last-sexp p1 p2))))
-  (define-key js3-mode-map (kbd "s-p") (lambda (p1 p2) (interactive "r")
-                               (let ((*rk/slime-js-print-result-p* t))
-                                 (rk/slime-js-send-region-or-last-sexp p1 p2))))
-  (define-key js3-mode-map (kbd "s-i") 'rk/slime-js-send-and-inspect)
-  ;; (define-key js3-mode-map (kbd "s-U") 'rk/slime-js-overlay-make-or-update)
-  ;; (define-key js3-mode-map (kbd "s-S") 'rk/slime-js-overlay-remove-overlay-at-point)
-  ;; (define-key js3-mode-map (kbd "s-A") (lambda () (interactive)
-  ;;                              (slime-eval-buffer)
-  ;;                              (run-with-timer 0.3 nil 'rk/slime-js-overlay-eval-all)))
-  (define-key js3-mode-map (kbd "M-SPC") 'rk/slime-js-send-defun)
-  (define-key js3-mode-map (kbd "C-c b") (lambda () (interactive)
-                                 (let ((*rk/slime-js-print-result-p* nil))
-                                   (rk/slime-js-send-buffer))))
+  (eval-after-load 'js3-mode
+    '(progn
+       (rk/add-slime-js-keys)))
   
   ;; (eval-after-load "init-javascript"
   ;;   '(progn
