@@ -1499,21 +1499,17 @@ Suppress GUI features
   (defun rk/helm-symbols (arg)
     (interactive "P")
     ;; see `helm-occur'
-    (let ((init (and (equal arg '(4)) (thing-at-point 'symbol)))
-          (buffers (list (current-buffer)))
-          (helm-multi-occur-buffer-list (list (buffer-name (current-buffer))))
-          ;; (helm-compile-source-functions
-          ;;  ;; rule out helm-match-plugin because the input is one regexp
-          ;;  (delq 'helm-compile-source--match-plugin
-          ;;        (copy-sequence helm-compile-source-functions)))
-          )
-      (helm-occur-init-source)
+    (helm-occur-init-source)
+    (let ((init (thing-at-point 'symbol))
+          (buffers (list (buffer-name (current-buffer)))))
+      (helm-attrset 'moccur-buffers buffers helm-source-occur)
+      (helm-set-local-variable 'helm-multi-occur-buffer-list buffers)
       (helm-attrset 'name "Occur" helm-c-source-occur)
       (helm :prompt "Search for symbol: "
             :input init
-            :default (thing-at-point 'symbol)
-            :sources '(helm-c-source-imenu
-                       helm-c-source-occur)
+            ;; :default init
+            :sources '(helm-source-imenu
+                       helm-source-occur)
             :buffer "*helm symbols*")))
   
   (require 'helm-projectile)
