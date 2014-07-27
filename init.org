@@ -1372,28 +1372,91 @@ Suppress GUI features
   ;; (setq cider-hide-special-buffers t)
   
   ;;; my cider keys
-  (defun rk/cider-print-and-mark (arg)
+  
+  (defun rk/cider-after-eval-insert (start end length)
+    "removes newline and marks printed result"
+    (when rk/cider-evaluation-in-progress
+      (setq rk/cider-evaluation-in-progress nil)
+      (goto-char start)
+      (delete-char 1)
+      (push-mark start t t)
+      (goto-char (- end 1))))
+  
+  ;; (makunbound 'rk/cider-evaluation-in-progress)
+  (defvar rk/cider-evaluation-in-progress nil)
+  (make-variable-buffer-local 'rk/cider-evaluation-in-progress)
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;;; deal with eval print exceptions
+  
+  (defun rk/cider-eval-err-handler (buffer ex root-ex session)
+    (with-current-buffer buffer
+      (setq qrk/cider-evaluation-in-progress nil))
+    (rk/cider-eval-ex-intercept-disable)
+    (funcall nrepl-err-handler
+             buffer ex root-ex session))
+  
+  (defvar rk/cider-real-eval-err-handler nil)
+  
+  (defun rk/cider-eval-ex-intercept-disable ()
+    (setq nrepl-err-handler (or rk/cider-real-eval-err-handler 'cider-default-err-handler))
+    (setq rk/cider-real-eval-err-handler nil))
+  
+  (defun rk/cider-eval-ex-intercept-enable ()
+    (setq rk/cider-real-eval-err-handler nrepl-err-handler)
+    (setq nrepl-err-handler 'rk/cider-eval-err-handler))
+  
+  
+  (defun rk/cider-printit (arg)
     (interactive "P")
-    (push-mark (point) t t)
     (if arg
-        (cider-pprint-eval-last-expression)
-        (cider-eval-print-last-sexp)))
+        (cider-pprint-eval-last-sexp)
+      (rk/with-active-region-or-line start end
+        (let ((form (buffer-substring-no-properties start end))
+              (insert-pos (if (< end start) start end)))
+          (goto-char insert-pos)
+          (setq rk/cider-evaluation-in-progress t)
+          (rk/cider-eval-ex-intercept-enable)
+          (cider-interactive-eval-print form)))))
   
-  (define-key rk/cider-key-map (kbd "C-x C-p") 'rk/cider-print-and-mark)
-  (define-key rk/cider-key-map (kbd "s-p") 'rk/cider-print-and-mark)
-  (define-key rk/cider-key-map (kbd "s-d") 'cider-eval-last-expression)
+  (defun rk/cider-doit ()
+    (interactive)
+    (rk/with-active-region-or-line start end
+      (let ((form (buffer-substring-no-properties start end)))
+        ;; (setq rk/cider-evaluation-in-progress t)
+        (cider-interactive-eval form))))
+  
+  (define-key rk/cider-key-map (kbd "M-S-SPC") 'cider-eval-defun-at-point)
+  (define-key rk/cider-key-map (kbd "C-x C-p") 'rk/cider-printit)
+  (define-key rk/cider-key-map (kbd "s-p") 'rk/cider-printit)
+  (define-key rk/cider-key-map (kbd "s-d") 'rk/cider-doit)
   (define-key rk/cider-key-map (kbd "s-i") 'cider-inspect)
-  (define-key rk/cider-key-map (kbd "s-I") 'cider-src)
+  (define-key rk/cider-key-map (kbd "s-SPC") 'ac-complete-with-helm)
+  (define-key rk/cider-key-map (kbd "M-SPC") 'ac-complete-with-helm)
   
+  ;;; help
+  (define-key rk/cider-key-map (kbd "C-c C-h c") 'clojure-cheatsheet)
+  (define-key rk/cider-key-map (kbd "C-c C-h r")
+    (lambda ()
+      (interactive)
+      (browse-url "http://docs.oracle.com/javase/1.5.0/docs/api/java/util/regex/Pattern.html")))
+  
+  
+  ;; (makunbound 'rk/cider-key-map)
+  ;; (makunbound 'rk/cider-minor-mode)
   (define-minor-mode rk/cider-minor-mode
     "A minor mode so that my key settings override annoying major modes."
-    nil " rkclj" rk/cider-key-map)
+    nil " rkclj" rk/cider-key-map
+    (add-hook 'after-change-functions 'rk/cider-after-eval-insert nil t))
   
   (defun rk/turn-on-cider-minor-mode () (rk/cider-minor-mode 1))
   
   ;; (add-hook 'cider-mode-hook 'rk/turn-on-cider-minor-mode t t)
   (add-hook 'cider-mode-hook 'rk/turn-on-cider-minor-mode)
   
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;; snippets
+  ;; git clone http://github.com/swannodette/clojure-snippets ~/.emacs.d/snippets/clojure-mode
 #+END_SRC
 
 * version control
