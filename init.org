@@ -868,7 +868,7 @@ active to `point-min' and `point-max'"
     "query var-names via `env' command from system shell and
   generate a bunch of `setenv' statements from it"
     `(progn
-       ,@(let* ((cmd (format "$SHELL --login -i -c 'env | egrep \"^(%s)=\"'"
+       ,@(let* ((cmd (format "$SHELL --login -i -c '[[ -f ~/.bashrc ]] && source ~/.bashrc; env | egrep \"^(%s)=\"'"
                              (rk/string-join var-names "|")))
                 (shell-out (shell-command-to-string cmd))
                 (lines (split-string shell-out "[\n]+"))
@@ -878,15 +878,14 @@ active to `point-min' and `point-max'"
                                 lines))))
            (mapcar (lambda (var-value) `(setenv ,@var-value)) vars-and-vals))))
   
-  (when (and *is-a-mac* window-system)
-    (rk/set-env-from-system-shell
-     "PATH" "MANPATH"
-     "CPATH" "PKG_CONFIG_PATH" "C_INCLUDE_PATH" "CPLUS_INCLUDE_PATH" "PYTHONPATH"
-     "LDFLAGS" "CFLAGS" "LIBS"  "DYLD_LIBRARY_PATH"
-     "JAVA_HOME" "CLOJURESCRIPT_HOME" "DOCKER_HOST" "TESSDATA_PREFIX"
-     "ZSH_PROFILE"
-     "ARDUINO_DIR" "ARDMK_DIR"
-     "NOTES" "LIVELY" "WEBWERKSTATT"))
+  (when window-system
+    (if *is-a-mac*
+     (rk/set-env-from-system-shell
+      "PATH" "MANPATH"
+      "CPATH" "PKG_CONFIG_PATH" "C_INCLUDE_PATH" "CPLUS_INCLUDE_PATH" "PYTHONPATH"
+      "LDFLAGS" "CFLAGS" "LIBS""DYLD_LIBRARY_PATH"
+      "JAVA_HOME" "CLOJURESCRIPT_HOME" "DOCKER_HOST")
+     (rk/set-env-from-system-shell "PATH" "MANPATH")))
   
   (setq exec-path (split-string (getenv "PATH") path-separator))
   (setenv "PAGER" "/bin/cat")
