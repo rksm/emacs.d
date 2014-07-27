@@ -2204,14 +2204,17 @@ evaling it
 * key setup
 ** window related
 #+BEGIN_SRC emacs-lisp
-  (when *is-a-mac*
-   (dolist (map `(,global-map ,minibuffer-local-map))
-     (progn
-       (print (prin1-to-string map))
-       (define-key map (kbd "<s-home>") 'windmove-left)
-       (define-key map (kbd "<s-end>") 'windmove-right)
-       (define-key map (kbd "<s-prior>") 'windmove-up)
-       (define-key map (kbd "<s-next>") 'windmove-down))))
+  (dolist (map `(,global-map ,minibuffer-local-map))
+    (progn
+      (define-key map (kbd "<C-s-left>") 'windmove-left)
+      (define-key map (kbd "<C-s-right>") 'windmove-right)
+      (define-key map (kbd "<C-s-up>") 'windmove-up)
+      (define-key map (kbd "<C-s-down>") 'windmove-down)
+      (when *is-a-mac*
+        (define-key map (kbd "<s-home>") 'windmove-left)
+        (define-key map (kbd "<s-end>") 'windmove-right)
+        (define-key map (kbd "<s-prior>") 'windmove-up)
+        (define-key map (kbd "<s-next>") 'windmove-down))))
   
   (global-set-key (kbd "C-x 4 t") 'transpose-buffers)
 #+END_SRC
@@ -2275,8 +2278,8 @@ evaling it
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
   ;;; moving text, really important
-  (global-set-key [C-s-268632080] 'move-text-up) ; C-s-p
-  (global-set-key [C-s-268632078] 'move-text-down) ; C-s-n
+  (global-set-key (if *is-a-mac* [C-s-268632080] (kbd "C-s-p")) 'move-text-up) ; C-s-p
+  (global-set-key (if *is-a-mac* [C-s-268632078] (kbd "C-s-n")) 'move-text-down) ; C-s-n
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
@@ -2334,8 +2337,7 @@ evaling it
           (if arg (move-end-of-line 1) (move-beginning-of-line 1))
           (insert content)
           (newline)
-          (unless arg (previous-line))))
-      (rk/activate-region start end)))
+          (unless arg (previous-line))))))
   
   (global-set-key (kbd "C-c p") 'duplicate-line)
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -2429,6 +2431,7 @@ evaling it
   
   (global-set-key (kbd "M-/") 'hippie-expand)
   (global-set-key (kbd "s-?") 'ac-complete-with-helm)
+  (global-set-key (kbd "s-SPC") 'ac-complete-with-helm)
   (global-set-key (kbd "M-SPC") 'ac-complete-with-helm)
   
   (set-default 'yas/trigger-key "s-\\")
@@ -2450,9 +2453,9 @@ evaling it
   ;(define-key cua-global-keymap [(control return)] 'set-rectangular-region-anchor)
   (global-set-key [(control return)] 'set-rectangular-region-anchor)
   
-  (global-set-key [C-s-268632067] 'mc/edit-lines)  ; C-s-c
-  (global-set-key [C-s-268632069] 'mc/edit-ends-of-lines)  ; C-s-e
-  (global-set-key [C-s-268632065] 'mc/edit-beginnings-of-lines)  ; C-s-a
+  (global-set-key (if *is-a-mac* [C-s-268632067] (kbd "C-s-c")) 'mc/edit-lines) ; C-s-c
+  (global-set-key (if *is-a-mac* [C-s-268632069] (kbd "C-s-e")) 'mc/edit-ends-of-lines) ; C-s-e
+  (global-set-key (if *is-a-mac* [C-s-268632065] (kbd "C-s-a")) 'mc/edit-beginnings-of-lines) ; C-s-a
   
   (global-set-key (kbd "C->") 'mc/mark-next-like-this)
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -2486,7 +2489,15 @@ evaling it
   ;;; expand-region
   (require 'expand-region)
   (global-set-key (kbd "S-s-SPC") 'er/expand-region)
-  (global-set-key [C-s-268632064] 'er/contract-region) ; C-s-SPC
+  
+  (if *is-a-mac*
+   (global-set-key [C-s-268632064] 'er/contract-region)
+   (global-set-key (kbd "C-s-SPC") 'er/contract-region)) ; C-s-SPC
+  
+  ;;; other editing supprt
+  (global-set-key (kbd "C-x C-y") 'rk/insert-region-or-line-into-other-window)
+  (global-set-key (kbd "C-c C-y") 'rk/insert-region-or-line-into-other-window)
+  
 #+END_SRC
 ** CMD keys
 #+BEGIN_SRC emacs-lisp
