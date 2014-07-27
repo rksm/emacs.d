@@ -26,6 +26,7 @@ ELPA/marmalade repos.
            ace-window
            multiple-cursors
            expand-region
+           yasnippet
            move-text
            auto-complete
            helm ac-helm
