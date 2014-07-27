@@ -1521,7 +1521,8 @@ Suppress GUI features
                            helm-c-source-recentf
                            helm-c-source-bookmarks))
            (sources (if (projectile-project-p)
-                        (-concat helm-projectile-sources-list '(helm-c-source-bookmarks))
+                        (-concat helm-projectile-sources-list
+                                 '(helm-source-buffers-list))
                       basic-sources)))
       (helm
        :prompt "Switch to: "
