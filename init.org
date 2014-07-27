@@ -918,8 +918,8 @@ active to `point-min' and `point-max'"
           (let (deactivate-mark)
             (push-mark nil nil t)
             (insert result))
-        (slime-flash-region start end 0.7))))
-
+        (rk/flash-region start end 0.7))))
+  
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   ;;; eshell
