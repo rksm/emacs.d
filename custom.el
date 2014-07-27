@@ -14,10 +14,14 @@
  '(erc-notifications-mode t t)
  '(erc-save-buffer-on-part t)
  '(erc-save-queries-on-quit t)
- '(safe-local-variable-values (quote ((Base . 10) (Syntax . ANSI-Common-Lisp) (Package . CYC) (haskell-indent-offset 2) (outline-minor-mode) (whitespace-style face tabs spaces trailing lines space-before-tab::space newline indentation::space empty space-after-tab::space space-mark tab-mark newline-mark) (js3-indent-level . 2)))))
+ '(ifconfig-program "ifconfig")
+ '(projectile-mode-line-lighter "⦿")
+ '(safe-local-variable-values (quote ((Base . 10) (Syntax . ANSI-Common-Lisp) (Package . CYC) (haskell-indent-offset 2) (outline-minor-mode) (whitespace-style face tabs spaces trailing lines space-before-tab::space newline indentation::space empty space-after-tab::space space-mark tab-mark newline-mark) (js3-indent-level . 2))))
+ '(sql-sqlite-program "sqlite3"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(magit-item-highlight ((t (:inherit nil :weight bold)))))
+ '(magit-item-highlight ((t (:inherit nil :weight bold))) t)
+ '(show-paren-match ((t (:weight bold :slant normal :underline nil :inverse-video t :foreground "#aadddd" :background "#292929")))))
