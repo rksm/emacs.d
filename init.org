@@ -2244,6 +2244,10 @@ evaling it
              haskell-doc-use-inf-haskell nil t
              haskell-program-name "ghci \"+.\"")))
   
+  (autoload 'ghc-init "ghc" nil t)
+  (autoload 'ghc-debug "ghc" nil t)
+  (add-hook 'haskell-mode-hook (lambda () (ghc-init)))
+  
   ;; Make compilation-mode understand "at blah.hs:11:34-50" lines output by GHC
   (eval-after-load 'compile
     '(progn
@@ -2261,6 +2265,10 @@ evaling it
     (save-window-excursion (inferior-haskell-load-and-run ":main")))
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  
+  (add-to-list 'load-path (concat user-emacs-directory "site-lisp/structured-haskell-mode/elisp"))
+  (require 'shm)
+  (add-hook 'haskell-mode-hook 'structured-haskell-mode)
   
 #+END_SRC
 
