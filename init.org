@@ -2838,6 +2838,7 @@ evaling it
   (rename-modeline "js3" js3-mode "js3")
   (rename-modeline "clojure-mode" clojure-mode "clj")
   (rename-modeline "lisp-mode" emacs-lisp-mode "elisp")
+  (rename-modeline "Paredit" paredit-mode "(|)")
 #+END_SRC
 
 * theming / colors
