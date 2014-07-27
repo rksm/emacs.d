@@ -565,6 +565,29 @@ ELPA/marmalade repos.
     (newline)
     (forward-line -1)
     (indent-for-tab-command))
+  
+  (defun rk/shift-indent-left ()
+    "move line or region `tab-width` right"
+    (interactive)
+    (rk/with-active-region-or-line start end
+      (indent-rigidly start end (* -1 tab-width))))
+  
+  (defun rk/shift-indent-right ()
+    "move line or region `tab-width` left"
+    (interactive)
+    (rk/with-active-region-or-line start end
+      (indent-rigidly start end tab-width)))
+  
+  (defun rk/insert-region-or-line-into-other-window ()
+    ""
+    (interactive)
+    (rk/with-active-region-or-line start end
+      (let ((string (buffer-substring-no-properties start end)))
+        (save-window-excursion
+          (other-window 1)
+          (insert string)))))
+
+
 #+END_SRC
 
 ** comments
@@ -2486,6 +2509,8 @@ evaling it
          (global-set-key (kbd "s-G") 'rk/helm-symbols)
          (global-set-key (kbd "s-/") 'comment-or-uncomment-region-or-line)
          (global-set-key (kbd "s-x") 'kill-region-or-line)
+         (global-set-key (kbd "s-]") 'rk/shift-indent-right)
+         (global-set-key (kbd "s-[") 'rk/shift-indent-left)
          (define-key dired-mode-map (kbd "s-o") (lambda (arg) (interactive "P") (dired-run-shell-command (format "open %s" (dired-file-name-at-point)))))))
 #+END_SRC
 ** CMD-Shift-L map
