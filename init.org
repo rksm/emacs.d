@@ -28,12 +28,11 @@ ELPA/marmalade repos.
            expand-region
            yasnippet
            move-text
-           auto-complete
-           helm ac-helm
            wgrep
            magit
-           projectile
-           helm-projectile
+           auto-complete
+           helm ac-helm
+           projectile helm-projectile helm-ls-git
            perspective
            ;; programming
            slime
@@ -44,7 +43,7 @@ ELPA/marmalade repos.
            ;; lispy things
            elisp-slime-nav
            paredit
-           clojure-mode clojure-test-mode cider clojure-cheatsheet
+           clojure-mode cider clojure-cheatsheet
            ;; erc
            ;; znc ;; bouncer
            ;; haskellme
@@ -1358,7 +1357,11 @@ Suppress GUI features
 #+BEGIN_SRC elisp
   ;;; see https://github.com/clojure-emacs/cider#configuration
   
+  (require 'clojure-mode)
   (require 'cider)
+  
+  (setq cider-prompt-save-file-on-load nil)
+  
   (add-hook 'cider-mode-hook 'cider-turn-on-eldoc-mode)
   (add-hook 'cider-repl-mode-hook 'paredit-mode)
   
@@ -1428,6 +1431,7 @@ Suppress GUI features
   
   (define-key rk/cider-key-map (kbd "M-S-SPC") 'cider-eval-defun-at-point)
   (define-key rk/cider-key-map (kbd "C-x C-p") 'rk/cider-printit)
+  (define-key rk/cider-key-map (kbd "C-x C-a") 'cider-eval-buffer)
   (define-key rk/cider-key-map (kbd "s-p") 'rk/cider-printit)
   (define-key rk/cider-key-map (kbd "s-d") 'rk/cider-doit)
   (define-key rk/cider-key-map (kbd "s-i") 'cider-inspect)
@@ -1457,6 +1461,37 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; snippets
   ;; git clone http://github.com/swannodette/clojure-snippets ~/.emacs.d/snippets/clojure-mode
+#+END_SRC
+
+***** clojure-test
+#+BEGIN_SRC elisp :tangle no
+  
+  (eval-after-load 'clojure-test-mode
+    '(progn
+       (defadvice clojure-test-run-tests (before clojure-test-save-buffer activate)
+         (save-buffer))))
+  
+#+END_SRC
+***** midje
+#+BEGIN_SRC elisp :tangle no
+  (require 'clojure-mode)
+  (require 'clojure-jump-to-file)
+  
+  (defun rk/modje-run-tests ()
+    (interactive)
+    (save-buffer)
+    (midje-test-run-tests))
+  
+  (eval-after-load 'midje-test-mode
+    '(progn
+       (define-key midje-test-mode-map (kbd "C-c ,") 'rk/modje-run-tests)
+       (define-key midje-test-mode-map (kbd "C-c C-,") 'rk/modje-run-tests)))
+  
+  (add-hook 'clojure-mode-hook 'midje-test-mode)
+  
+  ;; (require 'midje-mode)
+  ;; (add-hook 'clojure-mode-hook 'midje-mode)
+  ;; (remove-hook 'clojure-mode-hook 'midje-mode)
 #+END_SRC
 
 * version control
