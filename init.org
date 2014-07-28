@@ -52,6 +52,7 @@ ELPA/marmalade repos.
            flycheck-haskell
            ;; flymake-hlint
            ;; flymake-haskell-multi
+           elfeed
            noctilux-theme
            ))
   
@@ -2305,6 +2306,22 @@ evaling it
   (require 'shm)
   (add-hook 'haskell-mode-hook 'structured-haskell-mode)
   
+#+END_SRC
+
+* feeds reading
+** elfeed
+RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com/blog/2013/11/26/
+#+BEGIN_SRC elisp
+  (setq elfeed-feeds
+        '(("https://www.schneier.com/blog/atom.xml" infosec)
+          ("http://pauldotcom.com/podcast/psw.xml" infosec)))
+  
+  (eval-after-load 'elfeed
+      '(progn
+         ;; Entries older than 2 weeks are marked as read
+         (add-hook 'elfeed-new-entry-hook
+                   (elfeed-make-tagger :before "2 weeks ago"
+                                       :remove 'unread))))
 #+END_SRC
 
 * key setup
