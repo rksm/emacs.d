@@ -1613,18 +1613,15 @@ Suppress GUI features
                        helm-source-occur)
             :buffer "*helm symbols*")))
   
-  (require 'helm-projectile)
-  
+  (require 'helm-ls-git)
   (defun rk/helm-buffers-and-files ()
     (interactive)
     (let* ((helm-ff-transformer-show-only-basename nil)
-           (basic-sources '(helm-source-buffers-list
-                           helm-c-source-recentf
-                           helm-c-source-bookmarks))
-           (sources (if (projectile-project-p)
-                        (-concat helm-projectile-sources-list
-                                 '(helm-source-buffers-list))
-                      basic-sources)))
+           (sources '(helm-c-source-ls-git
+                      helm-c-source-ls-git-status
+                      helm-source-buffers-list
+                      helm-c-source-recentf
+                      helm-c-source-bookmarks)))
       (helm
        :prompt "Switch to: "
        :candidate-number-limit 20
