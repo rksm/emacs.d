@@ -37,6 +37,7 @@
         js3-enter-key
         js3-mark-defun
         kill-region
+        mark-defun
         mark-word
         markdown-cycle
         markdown-enter-key
@@ -56,6 +57,7 @@
         paredit-backward
         paredit-backward-delete
         paredit-backward-kill-word
+        paredit-backward-slurp-sexp
         paredit-backward-up
         paredit-close-round
         paredit-comment-dwim
