@@ -1652,21 +1652,26 @@ Suppress GUI features
 ** erc
 #+BEGIN_SRC elisp
   (require 'erc)
-
+  
   (setq erc-hide-list '("JOIN" "PART" "QUIT")
         erc-nick "rksm"
         erc-notifications-mode t
         erc-input-line-position -3)
-
+  
   (erc-autojoin-mode t)
   (setq erc-autojoin-channels-alist
-    '((".*\\.freenode.net" "#emacs" "#Node.js" "#clojure" "#ace")))
-
+    '((".*\\.freenode.net"
+       "#emacs"
+       "#Node.js"
+       "#clojure" "#clojure.de" "#clojurescript" "#clojure-emacs"
+       "#ace")))
+  
+  
   (defun rk/erc-make-frame ()
     (interactive)
     (make-frame)
     (rk/erc-setup-windows))
-
+  
   (defun rk/erc-setup-windows ()
     (interactive)
     (let ((erc-buffers (butlast (erc-buffer-list) 1)))
