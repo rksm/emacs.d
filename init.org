@@ -2989,7 +2989,9 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
   (rename-modeline "js3" js3-mode "js3")
   (rename-modeline "clojure-mode" clojure-mode "clj")
   (rename-modeline "lisp-mode" emacs-lisp-mode "elisp")
-  (rename-modeline "Paredit" paredit-mode "(|)")
+  (rename-modeline "clojure-mode" clojure-mode "λ")
+  (rename-modeline "paredit" paredit-mode "(|)")
+  (rename-modeline "init" rk/cider-minor-mode "rkλ")
 #+END_SRC
 
 * theming / colors
