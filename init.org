@@ -52,6 +52,7 @@ ELPA/marmalade repos.
            flycheck-haskell
            ;; flymake-hlint
            ;; flymake-haskell-multi
+           vagrant-tramp
            elfeed
            noctilux-theme
            ))
@@ -954,12 +955,18 @@ active to `point-min' and `point-max'"
         (progn
           (ansi-term (getenv "SHELL")))
       (switch-to-buffer "*ansi-term*")))
-
+  
   (add-hook 'term-mode-hook (lambda () (setq show-trailing-whitespace nil)))
   ;; (add-hook 'term-mode-hook (lambda () (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)))
   ;; (remove-hook 'term-mode-hook (car term-mode-hook))
-
+  
 #+END_SRC
+** vagrant
+#+BEGIN_SRC elisp
+(eval-after-load 'tramp
+  '(vagrant-tramp-enable))
+#+END_SRC
+
 * misc
 ** windows
 #+BEGIN_SRC emacs-lisp
