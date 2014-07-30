@@ -1629,21 +1629,22 @@ Suppress GUI features
             :sources '(helm-source-imenu
                        helm-source-occur)
             :buffer "*helm symbols*")))
-  
+
   (require 'helm-ls-git)
   (defun rk/helm-buffers-and-files ()
     (interactive)
     (let* ((helm-ff-transformer-show-only-basename nil)
-           (sources '(helm-c-source-ls-git
+           (sources '(helm-source-buffers-list
                       helm-c-source-ls-git-status
-                      helm-source-buffers-list
+                      helm-c-source-ls-git
                       helm-c-source-recentf
-                      helm-c-source-bookmarks)))
+                      helm-c-source-bookmarks
+                      helm-source-buffer-not-found)))
       (helm
        :prompt "Switch to: "
        :candidate-number-limit 20
        :sources sources)))
-  
+
 #+END_SRC
 
 * flycheck
@@ -2710,6 +2711,7 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
    "fn"   find-name-dired
    "fs"   rk/fringe-shrink
    "fw"   rk/fringe-widen
+   "fv"   add-file-local-variable-prop-line
    "g"    helm-do-grep
    "G"    rgrep
    "h$"   rk/jQuery-doc
@@ -2769,7 +2771,7 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
    "morg" org-mode
    "mw"   whitespace-mode
    "name" rk/insert-name-email
-   "occ"  occur
+   "oc"   org-capture
    "op"   org-insert-property-drawer
    "ot"   org-show-todo-tree
    "or"   remember
@@ -2799,14 +2801,12 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
    "vm"   magit-status-somedir
    "work" tomatinho
    "ws"   rk/copy-stringified
-   "wm"   whitespace-mode
    "wt"   delete-trailing-whitespace
    "xx"   execute-extended-command
    "xb"   eval-buffer
    "xe"   eval-last-sexp
    "xp"   eval-print-last-sexp
    "xr"   eval-region
-   "xs"   slime-eval-buffer
    "ye"   yas/exit-all-snippets
    "yc"   helm-c-yas-complete
    "!"    shell-command
