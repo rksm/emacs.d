@@ -65,9 +65,11 @@
         paredit-forward
         paredit-forward-delete
         paredit-forward-kill-word
+        paredit-forward-slurp-sexp
         paredit-newline
         paredit-open-round
         paredit-splice-sexp-killing-backward
+        paredit-wrap-round
         rk-run-tests
         rk/delete-backward-line
         rk/eval-and-replace-last-sexp
