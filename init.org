@@ -77,40 +77,40 @@ ELPA/marmalade repos.
 
 ** emacs interaction
 #+BEGIN_SRC emacs-lisp
-   (setq-default blink-cursor-delay 0
-                 mouse-highlight nil
-                 bookmark-default-file "~/.emacs.d/.bookmarks.el"
-                 buffers-menu-max-size 30
-                 case-fold-search t
-                 compilation-scroll-output t
-                 ediff-split-window-function 'split-window-horizontally
-                 ediff-window-setup-function 'ediff-setup-windows-plain
-                 grep-highlight-matches t
-                 grep-scroll-output nil
-                 indent-tabs-mode nil
-                 tab-width 4
-                 ;; line-spacing 0.2
-                 set-mark-command-repeat-pop t
-                 show-trailing-whitespace t
-                 ;; tooltip-delay 1.5
-                 truncate-lines nil
-                 truncate-partial-width-windows nil
-                 visible-bell t
-                 fill-column 80
-                 ;; backups
-                 make-backup-files t
-                 backup-directory-alist '(("." . "~/.emacs.d/backups"))
-                 kept-new-versions 6
-                 kept-old-versions 2
-                 version-control t
-                 delete-old-versions t
-                 ;; autosave
-                 auto-save-file-name-transforms
-                 `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
-                   (".*" "~/.emacs.d/backups" t))
-                 ;; lock files
-                 create-lockfiles nil)
-  
+  (setq-default blink-cursor-delay 0
+                mouse-highlight nil
+                bookmark-default-file "~/.emacs.d/.bookmarks.el"
+                buffers-menu-max-size 30
+                case-fold-search t
+                compilation-scroll-output t
+                ediff-split-window-function 'split-window-horizontally
+                ediff-window-setup-function 'ediff-setup-windows-plain
+                grep-highlight-matches t
+                grep-scroll-output nil
+                indent-tabs-mode nil
+                tab-width 4
+                ;; line-spacing 0.2
+                set-mark-command-repeat-pop t
+                show-trailing-whitespace t
+                ;; tooltip-delay 1.5
+                truncate-lines nil
+                truncate-partial-width-windows nil
+                visible-bell t
+                fill-column 80
+                ;; backups
+                make-backup-files t
+                backup-directory-alist '(("." . "~/.emacs.d/backups"))
+                kept-new-versions 6
+                kept-old-versions 2
+                version-control t
+                delete-old-versions t
+                ;; autosave
+                auto-save-file-name-transforms
+                `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'" ,temporary-file-directory t)
+                  (".*" "~/.emacs.d/backups" t))
+                ;; lock files
+                create-lockfiles nil)
+
   (fset 'yes-or-no-p 'y-or-n-p)
   (column-number-mode 1)
   (blink-cursor-mode 0)
@@ -119,25 +119,35 @@ ELPA/marmalade repos.
   (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
-  
+
   (setq show-paren-delay 0
         show-paren-style 'parenthesis)
   (show-paren-mode 1)
   (electric-pair-mode 1)
   (electric-indent-mode -1)
-   (transient-mark-mode t)
-   (delete-selection-mode 1)
-  
-   ;; remember cursor pos
-   (setq save-place t)
-   (require 'saveplace)
-   (setq save-place-file "~/.emacs.d/saved-places")
-  
+  (transient-mark-mode t)
+  (delete-selection-mode 1)
+
+  ;; remember cursor pos
+  (setq save-place t)
+  (require 'saveplace)
+  (setq save-place-file "~/.emacs.d/saved-places")
+
   ;;; enable disabled commands
   (put 'narrow-to-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
-  
+
+  ;;; font
+  (cond
+   ((member "Monaco" (font-family-list))
+    (set-face-attribute 'default nil :font "Monaco-12"))
+   ((member "Inconsolata" (font-family-list))
+    (set-face-attribute 'default nil :font "Inconsolata-15"))
+   ((member "DejaVu Sans Mono" (font-family-list))
+    (set-face-attribute 'default nil :font "DejaVu Sans Mono-13"))
+   ((member "Bitstream Vera Sans Mono" (font-family-list))
+    (set-face-attribute 'default nil :font "Bitstream Vera Sans Mono-13")))
 #+END_SRC
 
 ** snippets
