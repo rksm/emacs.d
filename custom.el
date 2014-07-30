@@ -4,7 +4,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(Man-notify-method (quote pushy))
- '(custom-safe-themes (quote ("1f3304214265481c56341bcee387ef1abb684e4efbccebca0e120be7b1a13589" "0c311fb22e6197daba9123f43da98f273d2bfaeeaeb653007ad1ee77f0003037" default)))
+ '(custom-safe-themes
+   (quote
+    ("1f3304214265481c56341bcee387ef1abb684e4efbccebca0e120be7b1a13589" "0c311fb22e6197daba9123f43da98f273d2bfaeeaeb653007ad1ee77f0003037" default)))
  '(erc-hide-list (quote ("JOIN" "PART" "QUIT")))
  '(erc-log-channels-directory "~/.erc/log")
  '(erc-log-insert-log-on-open t)

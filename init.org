@@ -138,6 +138,9 @@ ELPA/marmalade repos.
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
 
+  ;;; diffing
+  (setq diff-switches "-c -u")
+
   ;;; font
   (cond
    ((member "Monaco" (font-family-list))
