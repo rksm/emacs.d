@@ -1691,10 +1691,11 @@ Suppress GUI features
   (erc-autojoin-mode t)
   (setq erc-autojoin-channels-alist
     '((".*\\.freenode.net"
-       "#emacs"
-       "#Node.js"
+       ;; "#emacs"
+       ;; "#Node.js"
+       ;; "#ace"
        "#clojure" "#clojure.de" "#clojurescript" "#clojure-emacs"
-       "#ace")))
+       )))
   
   
   (defun rk/erc-make-frame ()
@@ -1712,13 +1713,22 @@ Suppress GUI features
       (loop for win being the windows for buf in erc-buffers do (set-window-buffer win buf))
       (balance-windows)))
 
+  
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  ;;; logging
+  (setq erc-enable-logging t
+        erc-log-insert-log-on-open nil)
+  
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; znc
-  ;;; /server robert.krahn.org 6666 rksm:<pass>
+  ;;; /server lively-web.org 6666 rksm:<pass>
   (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "znc"))
   (require 'znc)
+  (let* ((erc-znc-password-file (concat user-emacs-directory "erc-znc-password"))
+         (password (rk/read-file-as-string erc-znc-password-file)))
+   (when password
   (setq znc-servers
-        '(("robertkrahn.org" 6666 nil ((network-slug "rksm" "tebor1")))))
+           `(("lively-web.org" 6666 nil ((network-slug "rksm" ,password)))))))
 
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; growl
