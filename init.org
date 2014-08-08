@@ -510,6 +510,13 @@ ELPA/marmalade repos.
             (set-buffer-modified-p t))
           (save-buffer)))))
   
+  (defun rk/read-file-as-string (file-path)
+    "read file identified by `file-path' and return its contents as
+  string. If file does not exist return nil"
+    (when (file-exists-p file-path)
+      (with-current-buffer (find-file-noselect file-path)
+        (substring-no-properties (buffer-string)))))
+  
   (defun rk/split-buffer-and-save-parts (buffer-or-name filename-func &optional separator)
     "split the buffer using separator and save each splits in a buffer/file using `filename-func'.
   `filename-func' expects the splitted content as arg"
