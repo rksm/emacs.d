@@ -2921,11 +2921,11 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
 * mode mappings
 #+BEGIN_SRC elisp
     ;; -*-no-byte-compile: t; -*-
-
+  
     ;;; clojure
     (autoload 'clojure-mode "clojure-mode")
-    (add-to-list 'auto-mode-alist '("\\.clj$" . clojure-mode))
-
+    (add-to-list 'auto-mode-alist '("\\.cljs?$" . clojure-mode))
+  
     ;;; git
     (autoload 'rebase-mode "rebase-mode")
     (add-to-list 'auto-mode-alist '("git-rebase-todo" . rebase-mode))
