@@ -132,7 +132,13 @@ ELPA/marmalade repos.
   (setq save-place t)
   (require 'saveplace)
   (setq save-place-file "~/.emacs.d/saved-places")
-
+  
+  ;;; recentf, load ol
+  (setq
+   recentf-save-file "~/.emacs.d/recentf"
+   recentf-max-saved-items 60)
+  (recentf-load-list)
+  
   ;;; enable disabled commands
   (put 'narrow-to-region 'disabled nil)
   (put 'downcase-region 'disabled nil)
