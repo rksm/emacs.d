@@ -3062,8 +3062,18 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
 ** theme
 #+BEGIN_SRC elisp
   (custom-set-faces
+  
+   ;; for lispy languages, heighlight matching parens sensfully
    '(show-paren-match
-     ((t(:weight bold :slant normal :underline nil :inverse-video t :foreground "#aadddd" :background "#292929")))))
+     ((t(:weight bold :slant normal :underline nil :inverse-video t :foreground "#aadddd" :background "#292929"))))
+  
+   ;; make comments readable
+   '(font-lock-comment-face ((t (:foreground "#9f9f9f" :inverse-video nil :underline nil :slant italic :weight normal))))
+   '(font-lock-doc-face ((t (:foreground "#9f9f9f" :inverse-video nil :underline nil :slant italic :weight normal))))
+  
+   ;; diff colors
+   '(magit-item-highlight ((t (:inherit nil :weight bold))))
+   '(show-paren-match ((t (:weight bold :slant normal :underline nil :inverse-video t :foreground "#aadddd" :background "#292929")))))
   
   (load-theme 'noctilux t)
  #+END_SRC
