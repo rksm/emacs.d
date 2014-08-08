@@ -64,6 +64,11 @@ ELPA/marmalade repos.
   (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "fringemark"))
   (add-to-list 'load-path (concat (expand-file-name "~/.emacs.d/site-lisp/") "swank-js"))
 #+END_SRC
+** emacs API
+#+BEGIN_SRC emacs-lisp
+  (require 'dash)
+  (require 's)
+#+END_SRC
 * generic settings
 ** system-related
 #+BEGIN_SRC emacs-lisp
@@ -338,12 +343,6 @@ ELPA/marmalade repos.
 #+END_SRC
 
 * useful functions
-** emacs API
-#+BEGIN_SRC elisp
-  (require 'dash)
-  (require 's)
- #+END_SRC
-
 ** navigation
 #+BEGIN_SRC elisp
   (defun rk/forward-to-match (re)
@@ -899,7 +898,7 @@ active to `point-min' and `point-max'"
                 (cmd (format base-cmd (rk/string-join var-names "|")))
                 (shell-out (shell-command-to-string cmd))
                 (lines (split-string shell-out "[\n]+"))
-                (vars-and-vals (rk/filter (lambda (pair) (and pair (car pair) (cadr pair)))
+                (vars-and-vals (-filter (lambda (pair) (and pair (car pair) (cadr pair)))
                                           (mapcar
                                            (lambda (line) (rk/string-match line "\\([^=]+\\)=\\(.*\\)" '(1 2)))
                                            lines))))
