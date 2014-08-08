@@ -933,6 +933,8 @@ active to `point-min' and `point-max'"
                                    ("\\`synce\\'" nil nil)
                                    ("\\`ssh\\'" "nil" "robert")))
 
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   (defun rk/shell-exec-and-replace-lines ()
