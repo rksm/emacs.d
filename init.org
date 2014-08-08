@@ -1654,6 +1654,9 @@ Suppress GUI features
        :candidate-number-limit 20
        :sources sources)))
 
+  (defun rk/helm-find-extended ()
+    (interactive)
+    (helm-find 4))
 #+END_SRC
 
 * flycheck
@@ -2717,6 +2720,7 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
    "em"   ediff-merge-buffers
    "ercf" rk/erc-make-frame
    "ercw" rk/erc-setup-windows
+   "fh"   rk/helm-find-extended
    "fn"   find-name-dired
    "fs"   rk/fringe-shrink
    "fw"   rk/fringe-widen
