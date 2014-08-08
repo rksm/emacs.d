@@ -43,10 +43,8 @@ ELPA/marmalade repos.
            ;; lispy things
            elisp-slime-nav
            paredit
-           clojure-mode cider clojure-cheatsheet
-           ;; erc
-           ;; znc ;; bouncer
-           ;; haskellme
+           clojure-mode cider clojure-cheatsheet elein
+           erc znc ;; bouncer
            haskell-mode
            ghci-completion
            flycheck-haskell
@@ -1388,6 +1386,7 @@ Suppress GUI features
   
   (require 'clojure-mode)
   (require 'cider)
+  (require 'nrepl-client)
   
   (setq cider-prompt-save-file-on-load nil)
   
@@ -1466,6 +1465,7 @@ Suppress GUI features
   (define-key rk/cider-key-map (kbd "s-i") 'cider-inspect)
   (define-key rk/cider-key-map (kbd "s-SPC") 'ac-complete-with-helm)
   (define-key rk/cider-key-map (kbd "M-SPC") 'ac-complete-with-helm)
+  (define-key rk/cider-key-map (kbd "C-c M-b") 'nrepl-connection-browser)
   
   ;;; help
   (define-key rk/cider-key-map (kbd "C-c C-h c") 'clojure-cheatsheet)
@@ -1490,6 +1490,14 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; snippets
   ;; git clone http://github.com/swannodette/clojure-snippets ~/.emacs.d/snippets/clojure-mode
+
+  ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  (require 'cider-browse-ns)
+  (define-key rk/cider-key-map (kbd "s-b") 'cider-browse-ns)
+  (define-key rk/cider-key-map (kbd "s-B") 'cider-browse-ns-all)
+#+END_SRC
+
 ***** babel
 
 Thanks to [[http://nakkaya.com/2013/04/06/using-clojure-with-org-babel-and-nrepl/][@nakaya.com]] and
@@ -1512,7 +1520,7 @@ http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-clojure.html
 #+END_SRC
 
 ***** clojure-test
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC elisp
   
   (eval-after-load 'clojure-test-mode
     '(progn
