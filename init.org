@@ -1490,6 +1490,25 @@ Suppress GUI features
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   ;; snippets
   ;; git clone http://github.com/swannodette/clojure-snippets ~/.emacs.d/snippets/clojure-mode
+***** babel
+
+Thanks to [[http://nakkaya.com/2013/04/06/using-clojure-with-org-babel-and-nrepl/][@nakaya.com]] and
+http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-clojure.html
+
+#+BEGIN_SRC elisp
+  (require 'ob)
+  (require 'ob-clojure)
+  (setq org-babel-clojure-backend 'cider)
+  
+  (add-hook 'org-src-mode-hook
+            '(lambda ()
+               (set (make-local-variable 'nrepl-buffer-ns)
+                    (with-current-buffer
+                        (overlay-buffer org-edit-src-overlay)
+                      nrepl-buffer-ns))))
+  
+  
+  
 #+END_SRC
 
 ***** clojure-test
