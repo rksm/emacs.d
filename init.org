@@ -904,17 +904,23 @@ active to `point-min' and `point-max'"
                                            lines))))
            (mapcar (lambda (var-value) `(setenv ,@var-value)) vars-and-vals))))
   
+  (defun rk/update-shell-env ()
+    "updates the shell environment (env, exec-path, ...) that is
+    known to emacs from extracting relevant state from a login
+    shell"
+    (interactive)
   (when window-system
     (if *is-a-mac*
      (rk/set-env-from-system-shell
       "PATH" "MANPATH"
       "CPATH" "PKG_CONFIG_PATH" "C_INCLUDE_PATH" "CPLUS_INCLUDE_PATH" "PYTHONPATH"
       "LDFLAGS" "CFLAGS" "LIBS""DYLD_LIBRARY_PATH"
-      "JAVA_HOME" "CLOJURESCRIPT_HOME" "DOCKER_HOST")
+           "JAVA_HOME" "JAVA_TOOLS_JAR" "CLOJURESCRIPT_HOME" "DOCKER_HOST")
      (rk/set-env-from-system-shell "PATH" "MANPATH")))
-  
   (setq exec-path (split-string (getenv "PATH") path-separator))
-  (setenv "PAGER" "/bin/cat")
+    (setenv "PAGER" "/bin/cat"))
+  
+  (rk/update-shell-env)
   
   ;; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   
