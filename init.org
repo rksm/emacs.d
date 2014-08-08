@@ -1644,8 +1644,6 @@ Suppress GUI features
     (interactive)
     (let* ((helm-ff-transformer-show-only-basename nil)
            (sources '(helm-source-buffers-list
-                      helm-c-source-ls-git-status
-                      helm-c-source-ls-git
                       helm-c-source-recentf
                       helm-c-source-bookmarks
                       helm-source-buffer-not-found)))
@@ -2389,7 +2387,6 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
 ** for helm
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "C-x b") 'rk/helm-buffers-and-files)
-
   (define-key helm-command-map (kbd "i") 'rk/helm-symbols)
   (define-key helm-command-map (kbd "b") 'rk/helm-buffers-and-files)
   (define-key helm-command-map (kbd "g") 'helm-do-grep)
@@ -2744,6 +2741,7 @@ RSS feed reader, see https://github.com/skeeto/elfeed and http://nullprogram.com
    "hc"   describe-key-briefly
    "hd"   apropos-documentation
    "hf"   describe-function
+   "hg"   helm-ls-git-ls
    "hh"   help-for-help
    "hi"   helm-info-emacs
    "hk"   helm-show-kill-ring
