@@ -37,10 +37,13 @@
         js3-enter-key
         js3-mark-defun
         kill-region
+        kill-sexp
         mark-defun
         mark-word
         markdown-cycle
         markdown-enter-key
+        move-text-down
+        move-text-up
         ns-copy-including-secondary
         org-beginning-of-line
         org-cycle
@@ -66,8 +69,11 @@
         paredit-forward-delete
         paredit-forward-kill-word
         paredit-forward-slurp-sexp
+        paredit-kill
         paredit-newline
+        paredit-open-curly
         paredit-open-round
+        paredit-open-square
         paredit-splice-sexp-killing-backward
         paredit-wrap-round
         rk-run-tests
